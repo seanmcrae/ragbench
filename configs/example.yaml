@@ -9,7 +9,7 @@ baseline: bm25-k5
 quality_metric: answer_f1
 metrics_k: [1, 3, 5, 10]
 budget:
-  max_cost_per_1k_usd: 0.60
+  max_cost_per_1k_usd: 1.00
   max_p95_latency_ms: 1500
 judge:
   provider: heuristic
