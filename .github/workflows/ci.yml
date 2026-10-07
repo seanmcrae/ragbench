@@ -32,3 +32,5 @@ jobs:
           uv run rag-eval run configs/example.yaml --quiet
           uv run rag-eval report
           uv run rag-eval compare bm25-k5 dense-lsa-k3 --fail-on-regression
+      - name: Docs site builds
+        run: uv run python scripts/build_site.py --run runs/example --out site
