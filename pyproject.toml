@@ -47,6 +47,8 @@ src = ["src", "tests", "scripts"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "PTH", "N"]
+# A whitespace-split string literal is the readable form for word lists.
+ignore = ["SIM905"]
 
 [tool.mypy]
 python_version = "3.11"

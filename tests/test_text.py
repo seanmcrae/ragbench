@@ -8,7 +8,8 @@ from rag_eval.text import (
 
 
 def test_tokenize_keeps_codes_and_hyphenated_words() -> None:
-    assert tokenize("Error TH-4031: re-connect Slack!") == ["error", "th-4031", "re-connect", "slack"]
+    tokens = tokenize("Error TH-4031: re-connect Slack!")
+    assert tokens == ["error", "th-4031", "re-connect", "slack"]
 
 
 def test_content_terms_drop_stopwords_and_fold_plurals() -> None:
