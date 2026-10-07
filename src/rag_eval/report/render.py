@@ -116,6 +116,17 @@ def recommendation_paragraphs(data: ReportData) -> list[str]:
             f"Recommended: **{c.name}** ({data.quality_metric} {c.quality:.3f}, "
             f"${c.cost_per_1k:.3f} per 1k queries, p95 {_ms(c.p95_ms)} ms)."
         )
+    chosen_delta = next(
+        (d for d in data.deltas if rec.chosen is not None and d.pipeline == rec.chosen.name), None
+    )
+    if chosen_delta is not None:
+        ci = chosen_delta.ci
+        verdict = _verdict(ci.significant, ci.delta)
+        out.append(
+            f"Versus the baseline {data.baseline}: {ci.delta:+.3f} {data.quality_metric} "
+            f"[{ci.low:+.3f}, {ci.high:+.3f}], {verdict} at {round(ci.confidence * 100)}% "
+            f"over {ci.n} queries."
+        )
     best = max(data.candidates, key=lambda c: (c.quality, -c.cost_per_1k, -c.p95_ms))
     if rec.chosen is not None and best.quality > rec.chosen.quality:
         c = rec.chosen

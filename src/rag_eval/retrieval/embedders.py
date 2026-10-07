@@ -44,10 +44,13 @@ def l2_normalize(matrix: NDArray[np.floating]) -> Matrix:
 class TfidfSvdEmbedder:
     """Latent semantic embeddings: TF-IDF over unigrams and bigrams reduced with truncated SVD."""
 
-    def __init__(self, dim: int = 128, seed: int = 0) -> None:
+    def __init__(self, dim: int = 128, seed: int = 0, max_features: int = 50_000) -> None:
         self.dim = dim
         self.seed = seed
+        # The vocabulary cap bounds SVD cost on larger corpora (bigrams grow fast); the bundled
+        # synthetic corpus is far below it.
         self._vectorizer = TfidfVectorizer(
+            max_features=max_features,
             tokenizer=content_terms,
             lowercase=False,
             token_pattern=None,

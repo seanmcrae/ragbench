@@ -5,6 +5,7 @@ from typing import Any
 import pytest
 
 from rag_eval.config import parse_config
+from rag_eval.datasets import Dataset, save_beir_dir
 from rag_eval.results import load_manifest, load_records, paired_metric, summarize
 from rag_eval.runner import resolve_run_dir, run_experiment
 
@@ -75,3 +76,21 @@ def test_resolve_run_dir_without_runs(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError):
         resolve_run_dir(None, tmp_path)
     assert resolve_run_dir(tmp_path / "x") == tmp_path / "x"
+
+
+def test_dataset_without_reference_answers(tmp_path: Path, tiny_dataset: Dataset) -> None:
+    """BEIR-style data (e.g. SciFact) has qrels but no answers: answer metrics are skipped."""
+    no_answers = Dataset("beir-like", tiny_dataset.corpus, tiny_dataset.queries, tiny_dataset.qrels)
+    save_beir_dir(no_answers, tmp_path / "beir")
+    raw = experiment(
+        tmp_path,
+        dataset={"kind": "beir", "path": str(tmp_path / "beir")},
+        quality_metric="ndcg@5",
+    )
+    run_dir = run_experiment(parse_config(raw))
+    records = load_records(run_dir)
+    assert all(r["metrics"]["answer_f1"] is None for r in records)
+    assert all(r["metrics"]["judge_score"] <= 0.5 for r in records)  # rubric caps at 3 of 5
+    summary = summarize(records, "ndcg@5")[0]
+    assert "answer_f1" not in summary.metrics
+    assert not load_manifest(run_dir)["dataset"]["has_reference_answers"]

@@ -1,7 +1,7 @@
-.PHONY: install lint format typecheck test demo data ci
+.PHONY: install lint format typecheck test demo data scifact ci
 
 install:
-	uv sync
+	uv sync --frozen
 
 lint:
 	uv run ruff check .
@@ -23,6 +23,11 @@ data:
 demo:
 	uv run rag-eval run configs/example.yaml
 	uv run rag-eval report --img-dir docs/img
-	uv run rag-eval compare bm25-k5 hybrid-rerank-k5
+	uv run rag-eval compare bm25-k5 hybrid-rerank-agent3-k5
+
+scifact:
+	uv run python scripts/download_scifact.py
+	uv run rag-eval run configs/scifact.yaml
+	uv run rag-eval report runs/scifact
 
 ci: lint typecheck test

@@ -72,6 +72,8 @@ def test_report_budget_override_changes_recommendation(workdir: Path) -> None:
     assert [d.pipeline for d in loose.deltas] == ["dense-k3", "agent-k3"]
     written = write_report(tight, run_dir)
     assert "No configuration fits the budget" in written.markdown.read_text()
+    if loose.recommendation.chosen.name != loose.baseline:
+        assert "Versus the baseline bm25-k3" in write_report(loose, run_dir).markdown.read_text()
 
 
 def test_report_rejects_unknown_metric(workdir: Path) -> None:

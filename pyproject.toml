@@ -3,13 +3,20 @@ requires = ["hatchling>=1.24"]
 build-backend = "hatchling.build"
 
 [project]
-name = "rag-eval-harness"
+name = "ragbench"
 version = "0.1.0"
-description = "Evaluation harness that compares RAG and agentic search pipelines on retrieval quality, answer quality, latency and cost-to-serve."
+description = "Evaluation harness that compares RAG and agentic search pipelines on retrieval quality, answer quality, latency and cost-to-serve, and recommends a configuration under a budget."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Sean Wayne" }]
+keywords = ["rag", "retrieval", "evaluation", "llm", "information-retrieval"]
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 requires-python = ">=3.11"
 dependencies = [
     "numpy>=1.26",
@@ -24,6 +31,9 @@ dependencies = [
 anthropic = ["anthropic>=0.40"]
 openai = ["openai>=1.40"]
 sentence-transformers = ["sentence-transformers>=3.0"]
+
+[project.urls]
+Repository = "https://github.com/seanmcrae/ragbench"
 
 [project.scripts]
 rag-eval = "rag_eval.cli:app"

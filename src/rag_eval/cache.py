@@ -33,12 +33,18 @@ def _context_key(contexts: Sequence[Document]) -> list[list[str]]:
 
 
 class ResponseCache:
-    def __init__(self, path: Path) -> None:
+    """SQLite-backed key/value store. Writes are committed in batches (and on close) because a
+    commit per call dominates run time on slow or networked filesystems."""
+
+    def __init__(self, path: Path, commit_every: int = 256) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(path)
         self._conn.execute(
             "CREATE TABLE IF NOT EXISTS responses (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
         )
+        self._conn.commit()
+        self.commit_every = commit_every
+        self._uncommitted = 0
         self.hits = 0
         self.misses = 0
 
@@ -52,13 +58,20 @@ class ResponseCache:
         return value
 
     def put(self, key: str, value: dict[str, Any]) -> None:
-        with self._conn:
-            self._conn.execute(
-                "INSERT OR REPLACE INTO responses (key, value) VALUES (?, ?)",
-                (key, json.dumps(value, ensure_ascii=False)),
-            )
+        self._conn.execute(
+            "INSERT OR REPLACE INTO responses (key, value) VALUES (?, ?)",
+            (key, json.dumps(value, ensure_ascii=False)),
+        )
+        self._uncommitted += 1
+        if self._uncommitted >= self.commit_every:
+            self.flush()
+
+    def flush(self) -> None:
+        self._conn.commit()
+        self._uncommitted = 0
 
     def close(self) -> None:
+        self.flush()
         self._conn.close()
 
 
