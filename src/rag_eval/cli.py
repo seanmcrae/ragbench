@@ -9,11 +9,11 @@ import typer
 
 from rag_eval.config import BudgetConfig, load_config
 from rag_eval.report import build_report, write_report
+from rag_eval.report.compare import compare_pipelines, render_comparison_text
 from rag_eval.report.model import ReportData
 from rag_eval.report.render import recommendation_paragraphs, render_text_table, summary_table
-from rag_eval.results import load_manifest, load_records, paired_metric, summarize
+from rag_eval.results import load_manifest, load_records
 from rag_eval.runner import resolve_run_dir, run_experiment
-from rag_eval.stats import paired_bootstrap
 
 app = typer.Typer(
     help="Compare RAG and agentic search pipelines on quality, latency and cost.",
@@ -25,8 +25,6 @@ RunsDir = Annotated[Path, typer.Option("--runs-dir", help="Where runs are stored
 RunOpt = Annotated[
     Path | None, typer.Option("--run", help="Run directory (default: the latest run).")
 ]
-
-COMPARE_METRICS = ("answer_f1", "exact_match", "judge_score", "groundedness", "ndcg@5", "mrr")
 
 
 def _plain(text: str) -> str:
@@ -106,40 +104,17 @@ def compare(
 ) -> None:
     """Paired comparison of pipeline B against A, with bootstrap confidence intervals."""
     resolved = resolve_run_dir(run, runs_dir)
-    records = load_records(resolved)
     config = load_manifest(resolved)["config"]
-    gate = gate_metric or config["quality_metric"]
-    metrics = list(dict.fromkeys([gate, *COMPARE_METRICS]))
-    rows = []
-    gate_ci = None
-    for metric in metrics:
-        try:
-            xs, ys = paired_metric(records, a, b, metric)
-        except KeyError:
-            if metric == gate:
-                raise
-            continue
-        if not xs:
-            continue
-        ci = paired_bootstrap(xs, ys, config["bootstrap_samples"], seed=config["seed"])
-        if metric == gate:
-            gate_ci = ci
-        rows.append(
-            f"{metric:<14}{ci.mean_a:>8.3f}{ci.mean_b:>8.3f}{ci.delta:>+9.3f}"
-            f"   [{ci.low:+.3f}, {ci.high:+.3f}]   p={ci.p_value:.3f}"
+    try:
+        comparison = compare_pipelines(
+            load_records(resolved), config, a, b, gate_metric=gate_metric
         )
-    summaries = {s.name: s for s in summarize(records, gate)}
-    sa, sb = summaries[a], summaries[b]
-    typer.echo(f"{b} vs {a} over {gate_ci.n if gate_ci else 0} queries (B - A, 95% CI)")
-    typer.echo(f"{'metric':<14}{'A':>8}{'B':>8}{'delta':>9}")
-    typer.echo("\n".join(rows))
-    typer.echo(
-        f"{'$/1k queries':<14}{sa.cost_per_1k_usd:>8.3f}{sb.cost_per_1k_usd:>8.3f}"
-        f"{sb.cost_per_1k_usd - sa.cost_per_1k_usd:>+9.3f}"
-    )
-    pa, pb = sa.latency_ms["total_p95"], sb.latency_ms["total_p95"]
-    typer.echo(f"{'p95 ms':<14}{pa:>8.0f}{pb:>8.0f}{pb - pa:>+9.0f}")
-    if gate_ci is not None and gate_ci.is_regression(tolerance):
+    except KeyError as exc:
+        typer.echo(f"error: {exc.args[0]}", err=True)
+        raise typer.Exit(code=2) from exc
+    typer.echo(render_comparison_text(comparison))
+    gate = comparison.gate_metric
+    if comparison.is_regression(tolerance):
         typer.echo(f"\nGATE FAIL: {b} is significantly worse than {a} on {gate}.")
         if fail_on_regression:
             raise typer.Exit(code=1)

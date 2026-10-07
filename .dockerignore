@@ -11,3 +11,4 @@ data/downloads
 docs
 tests
 **/__pycache__
+site

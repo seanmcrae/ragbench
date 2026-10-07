@@ -8,6 +8,7 @@ from typer.testing import CliRunner
 from rag_eval.cli import app
 from rag_eval.config import BudgetConfig
 from rag_eval.report import build_report, write_report
+from rag_eval.report.compare import compare_pipelines, comparison_table, render_comparison_text
 from rag_eval.report.render import Table, render_text_table
 from rag_eval.results import load_manifest, load_records
 
@@ -137,7 +138,22 @@ def test_compare_identical_pipelines_pass(workdir: Path) -> None:
 
 def test_compare_unknown_pipeline_errors(workdir: Path) -> None:
     result = runner.invoke(app, ["compare", "bm25-k3", "nope", "--runs-dir", str(workdir / "runs")])
-    assert result.exit_code != 0
+    assert result.exit_code == 2
+    assert "pipeline 'nope'" in result.output and "bm25-k3" in result.output
+
+
+def test_comparison_table_matches_text(workdir: Path) -> None:
+    run_dir = workdir / "runs" / "cli-smoke"
+    records = load_records(run_dir)
+    config = load_manifest(run_dir)["config"]
+    comparison = compare_pipelines(records, config, "bm25-k3", "agent-k3")
+    assert comparison.gate_metric == "answer_f1" and comparison.n_queries == 15
+    table = comparison_table(comparison)
+    assert table.headers[:3] == ["metric", "bm25-k3", "agent-k3"]
+    assert [row[0] for row in table.rows][-2:] == ["$/1k queries", "p95 ms"]
+    text = render_comparison_text(comparison)
+    for row in table.rows[:-2]:
+        assert row[0] in text and row[3] in text
 
 
 def test_text_table_alignment() -> None:
