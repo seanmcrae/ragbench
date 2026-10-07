@@ -9,7 +9,7 @@ description = "Evaluation harness that compares RAG and agentic search pipelines
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
-authors = [{ name = "Sean Wayne" }]
+authors = [{ name = "Sean McRae" }]
 keywords = ["rag", "retrieval", "evaluation", "llm", "information-retrieval"]
 classifiers = [
     "Programming Language :: Python :: 3.11",
