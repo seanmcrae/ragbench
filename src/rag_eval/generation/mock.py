@@ -116,6 +116,30 @@ class ExtractiveGenerator:
         best = max(sentences, key=lambda s: len(terms & s.terms))
         return best, len(terms & best.terms)
 
+    @staticmethod
+    def _bridge(
+        sentences: Sequence[_Sentence], best: _Sentence, q_set: frozenset[str]
+    ) -> tuple[_Sentence | None, int]:
+        """Pick the sentence covering most uncovered question terms.
+
+        Ties go to the sentence whose new terms also occur in the other answer candidates
+        (sentences matching the question as well as ``best`` does), i.e. the one that links
+        the missing constraint to a candidate answer.
+        """
+        covered = q_set & best.terms
+        uncovered = q_set - best.terms
+        linked_vocab = (
+            frozenset().union(*(s.terms for s in sentences if covered <= s.terms)) - q_set
+        )
+        candidates = [s for s in sentences if s is not best]
+        if not candidates:
+            return None, 0
+        bridge = max(
+            candidates,
+            key=lambda s: (len(uncovered & s.terms), len((s.terms - q_set) & linked_vocab)),
+        )
+        return bridge, len(uncovered & bridge.terms)
+
     def answer(
         self, question: str, contexts: Sequence[Document], searches: Sequence[str] = ()
     ) -> Completion:
@@ -142,18 +166,17 @@ class ExtractiveGenerator:
         best, overlap = self._best(sentences, q_set)
         if overlap / len(q_set) >= self.stop_coverage:
             return self._completion(SEARCH_SYSTEM, user, "")
-        # The bridge is the sentence that best explains what the best answer candidate misses;
-        # its resolved terms replace the question terms it satisfies.
+        # The bridge is the sentence that best explains what the best answer candidate misses.
+        # If one is in context, substitute its resolved terms for the question terms it
+        # satisfies; otherwise search for the uncovered part of the question on its own.
         uncovered = q_set - best.terms
-        candidates = [s for s in sentences if s is not best]
-        if not candidates:
-            return self._completion(SEARCH_SYSTEM, user, "")
-        bridge, bridge_overlap = self._best(candidates, uncovered)
-        if bridge_overlap == 0:
-            return self._completion(SEARCH_SYSTEM, user, "")
-        resolved = [t for t in q_terms if t not in bridge.terms]
-        novel = [t for t in _ordered_unique(content_terms(bridge.text)) if t not in q_set]
-        query = " ".join(resolved + novel)
+        bridge, bridge_overlap = self._bridge(sentences, best, q_set)
+        if bridge is not None and bridge_overlap:
+            resolved = [t for t in q_terms if t not in bridge.terms]
+            novel = [t for t in _ordered_unique(content_terms(bridge.text)) if t not in q_set]
+            query = " ".join(resolved + novel)
+        else:
+            query = " ".join(t for t in q_terms if t in uncovered)
         if query in searches:
             return self._completion(SEARCH_SYSTEM, user, "")
         return self._completion(SEARCH_SYSTEM, user, query)
