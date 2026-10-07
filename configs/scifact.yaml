@@ -1,0 +1,32 @@
+# Optional larger run on BEIR SciFact (CC BY-NC 2.0). Fetch it first:
+#   uv run python scripts/download_scifact.py
+# SciFact has no reference answers, so answer F1/EM are skipped; rank on nDCG@10 instead.
+name: scifact
+dataset:
+  kind: beir
+  path: data/downloads/scifact
+  split: test
+prices: configs/prices.yaml
+baseline: bm25-k5
+quality_metric: ndcg@10
+metrics_k: [1, 5, 10]
+budget:
+  max_cost_per_1k_usd: 2.00
+  max_p95_latency_ms: 2500
+
+defaults:
+  top_k: 5
+  generator: {provider: mock, price_as: claude-haiku-4-5}
+
+pipelines:
+  - name: bm25-k5
+    retriever: {kind: bm25, k1: 0.9, b: 0.4}
+  - name: dense-lsa-k5
+    retriever: {kind: dense, embedder: {kind: tfidf-svd, dim: 256}}
+  - name: hybrid-rerank-k5
+    retriever:
+      kind: hybrid
+      components:
+        - {kind: bm25, k1: 0.9, b: 0.4}
+        - {kind: dense, embedder: {kind: tfidf-svd, dim: 256}}
+    reranker: {kind: query-likelihood, depth: 30}

@@ -144,15 +144,33 @@ class ExtractiveGenerator:
         self, question: str, contexts: Sequence[Document], searches: Sequence[str] = ()
     ) -> Completion:
         user = answer_prompt(question, contexts, searches)
-        target = frozenset(content_terms(searches[-1] if searches else question))
         sentences = self._sentences(contexts)
-        if not sentences or not target:
+        q_terms = frozenset(content_terms(question))
+        best_fit: tuple[float, _Sentence, frozenset[str]] | None = None
+        if sentences and q_terms:
+            sentence, overlap = self._best(sentences, q_terms)
+            best_fit = (overlap / len(q_terms), sentence, q_terms)
+        # A follow-up search wins only if a passage matches it strictly better than any passage
+        # matches the question. The bridge sentence (the one holding both the question terms the
+        # rewrite dropped and the new terms it added) is excluded, otherwise every rewritten
+        # query would trivially "answer" itself.
+        for search in searches:
+            target = frozenset(content_terms(search))
+            novel = target - q_terms
+            bridge_terms = novel | (q_terms - target)
+            pool = [s for s in sentences if novel and not bridge_terms <= s.terms]
+            if not pool:
+                continue
+            sentence, overlap = self._best(pool, target)
+            coverage = overlap / len(target)
+            if best_fit is None or coverage > best_fit[0]:
+                best_fit = (coverage, sentence, target)
+        if best_fit is None or best_fit[0] < self.min_coverage:
             return self._completion(ANSWER_SYSTEM, user, ABSTAIN)
-        best, overlap = self._best(sentences, target)
-        if overlap / len(target) < self.min_coverage:
-            return self._completion(ANSWER_SYSTEM, user, ABSTAIN)
-        text = f"{extract_span(best.text, target)} [{best.doc_id}]"
-        return self._completion(ANSWER_SYSTEM, user, text)
+        _, sentence, target = best_fit
+        return self._completion(
+            ANSWER_SYSTEM, user, f"{extract_span(sentence.text, target)} [{sentence.doc_id}]"
+        )
 
     def next_search(
         self, question: str, contexts: Sequence[Document], searches: Sequence[str]

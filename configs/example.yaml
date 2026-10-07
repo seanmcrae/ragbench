@@ -1,0 +1,42 @@
+# Compare single-shot and agentic pipelines on the bundled SYNTHETIC help-center corpus.
+# Everything runs offline: the mock generator is extractive, its token usage is priced as the
+# model named in `price_as`, and its latency is modeled from token counts.
+name: example
+dataset:
+  kind: synthetic
+prices: configs/prices.yaml
+baseline: bm25-k5
+quality_metric: answer_f1
+metrics_k: [1, 3, 5, 10]
+budget:
+  max_cost_per_1k_usd: 0.60
+  max_p95_latency_ms: 1500
+judge:
+  provider: heuristic
+
+defaults:
+  top_k: 5
+  generator:
+    provider: mock
+    price_as: claude-haiku-4-5
+
+pipelines:
+  - name: bm25-k5
+    retriever: {kind: bm25}
+  - name: hybrid-k5
+    retriever: {kind: hybrid}
+  - name: hybrid-rerank-k5
+    retriever: {kind: hybrid}
+    reranker: {kind: query-likelihood, depth: 20}
+  - name: hybrid-rerank-agent3-k5
+    retriever: {kind: hybrid}
+    reranker: {kind: query-likelihood, depth: 20}
+    max_steps: 3
+
+# Cartesian product merged over `defaults`; names are generated from the settings,
+# e.g. dense-lsa-agent3-k3.
+matrix:
+  retriever:
+    - {kind: dense, embedder: {kind: tfidf-svd, dim: 128}}
+  top_k: [3, 5]
+  max_steps: [1, 3]

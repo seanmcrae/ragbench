@@ -71,6 +71,21 @@ def test_answer_targets_latest_search() -> None:
     assert out.text == "300 [rl-team]"
 
 
+def test_irrelevant_rewrite_does_not_hijack_answer() -> None:
+    # The rewrite pulled in terms from an unrelated bridge sentence; that sentence must not be
+    # allowed to "answer" the rewritten query, so the question's own best match wins.
+    contexts = [
+        Document(
+            "sla", "", "The first-response target for support tickets on Business is 4 hours."
+        ),
+        Document("res", "", "Customer data is stored in the region chosen at signup."),
+    ]
+    gen = ExtractiveGenerator()
+    question = "What is the support SLA for Business customers?"
+    out = gen.answer(question, contexts, ["support sla business data stored region chosen signup"])
+    assert out.text == "4 hours [sla]"
+
+
 def test_completion_round_trip() -> None:
     gen = ExtractiveGenerator()
     out = gen.answer("What formats?", [Document("d", "", "Formats are CSV and JSON.")])
