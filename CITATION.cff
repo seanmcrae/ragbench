@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use ragbench, please cite it using these metadata."
+title: "ragbench: evaluating RAG and agentic search on quality, latency and cost"
+type: software
+authors:
+  - given-names: Sean
+    family-names: McRae
+version: 0.1.0
+date-released: "2026-10-07"
+license: MIT
+repository-code: "https://github.com/seanmcrae/ragbench"
+url: "https://seanmcrae.github.io/ragbench/"
+abstract: >-
+  An evaluation harness that compares retrieval-augmented and agentic search pipelines on
+  retrieval quality, answer quality, groundedness, latency and cost-to-serve, and recommends
+  a configuration under a budget with paired bootstrap confidence intervals. Runs offline by
+  default with a deterministic mock generator.
+keywords:
+  - retrieval-augmented generation
+  - information retrieval
+  - evaluation
+  - llm
+  - agentic search

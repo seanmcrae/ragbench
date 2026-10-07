@@ -1,0 +1,28 @@
+name: Feature request
+description: Propose a metric, retriever, provider, report section or workflow change.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: The decision or workflow this would help with, and what you do today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What you would like ragbench to do. For a metric, include how it is computed.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: offline
+    attributes:
+      label: Constraints
+      options:
+        - label: This can be tested offline without API keys (or I explained why not above).

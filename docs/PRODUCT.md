@@ -14,7 +14,7 @@ The failure mode this repo targets is shipping a change that looks better on the
 someone checked and is worse on the ones nobody did. Agentic retrieval is the sharpest
 case: on the bundled synthetic corpus it lifts answer F1 from 0.549 to 0.622 over BM25, a
 statistically significant gain, while cost per 1k queries goes from $0.646 to $1.868 and p95
-latency from 884 ms to 1,961 ms. Whether that is worth it is a product decision, and it
+latency from 884 ms to 1,962 ms. Whether that is worth it is a product decision, and it
 should be made with all of those numbers and their uncertainty on one page.
 
 ## Users and jobs to be done
