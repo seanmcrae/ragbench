@@ -158,16 +158,16 @@ renders the same tables, regenerated from a fresh run on every push to `main`.
    agentic pipeline may ask for another search, up to `max_steps`. Every stage is timed and
    every completion records its token usage.
 2. **Score each query.**
-   - *Retrieval*: recall@k, precision@k, MRR and nDCG@k against graded qrels (2 = states the
-     answer, 1 = supporting or bridge document).
-   - *Answer*: SQuAD-style token F1 and exact match against the reference answers.
-   - *Groundedness*: share of answer sentences that cite a retrieved document, times the share
-     of the answer's content terms found in the documents it cites. Uncited answers score 0.
-   - *Judge*: a 1-5 rubric (correct, complete, supported by cited passages) normalised to
-     [0, 1]; the offline judge maps F1 and citation coverage onto it, an LLM judge reads the
-     passages.
-   - *Latency and cost*: per-stage wall-clock (modeled for the mock generator), and tokens
-     priced from `configs/prices.yaml`.
+    - *Retrieval*: recall@k, precision@k, MRR and nDCG@k against graded qrels (2 = states the
+      answer, 1 = supporting or bridge document).
+    - *Answer*: SQuAD-style token F1 and exact match against the reference answers.
+    - *Groundedness*: share of answer sentences that cite a retrieved document, times the share
+      of the answer's content terms found in the documents it cites. Uncited answers score 0.
+    - *Judge*: a 1-5 rubric (correct, complete, supported by cited passages) normalised to
+      [0, 1]; the offline judge maps F1 and citation coverage onto it, an LLM judge reads the
+      passages.
+    - *Latency and cost*: per-stage wall-clock (modeled for the mock generator), and tokens
+      priced from `configs/prices.yaml`.
 3. **Summarise.** Means per pipeline, p50/p95 latency, cost per 1k queries, quality by query
    type.
 4. **Decide.** Drop configurations over the cost or p95 budget (reasons recorded), take the

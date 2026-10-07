@@ -45,6 +45,11 @@ dev = [
     "ruff>=0.6",
     "mypy>=1.11",
     "types-PyYAML>=6.0",
+    "types-markdown>=3.6",
+]
+docs = [
+    "jinja2>=3.1",
+    "markdown>=3.6",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -75,3 +80,7 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q --cov=rag_eval --cov-report=term-missing:skip-covered"
+
+[tool.uv]
+# The docs group (static site generator) is small and type-checked with the rest of the repo.
+default-groups = ["dev", "docs"]

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block main %}
+<div class="wrap with-toc">
+  <aside class="toc">
+    <p class="toc-title">Product brief</p>
+    <ul>{% for item in toc %}<li><a href="#{{ item.id }}">{{ item.name }}</a></li>{% endfor %}</ul>
+  </aside>
+  <article class="prose">
+    <h1>ragbench: product brief</h1>
+    {{ body | safe }}
+  </article>
+</div>
+{% endblock %}

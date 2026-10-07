@@ -1,4 +1,4 @@
-.PHONY: install lint format typecheck test demo data scifact diagram ci
+.PHONY: install lint format typecheck test demo data scifact site diagram ci
 
 install:
 	uv sync --frozen
@@ -29,6 +29,11 @@ scifact:
 	uv run python scripts/download_scifact.py
 	uv run rag-eval run configs/scifact.yaml
 	uv run rag-eval report runs/scifact
+
+# Static docs site for GitHub Pages: a fresh run of the example matrix rendered into site/.
+site:
+	uv run rag-eval run configs/example.yaml --quiet
+	uv run python scripts/build_site.py --run runs/example --out site
 
 # Re-render the architecture SVG after editing docs/architecture.mmd (needs Node 20+ and a
 # Chromium that Puppeteer can launch; the rendered file is committed, so CI does not need this).
