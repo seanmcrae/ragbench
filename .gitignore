@@ -1,0 +1,31 @@
+# Environments
+.venv/
+venv/
+env/
+.env
+.env.*
+*.pem
+secrets/
+
+# Python caches and build output
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Node (not used, kept out defensively)
+node_modules/
+
+# Harness artefacts
+.rag_eval_cache/
+runs/
+
+# Downloaded public datasets (fetched by scripts/download_scifact.py)
+data/downloads/
