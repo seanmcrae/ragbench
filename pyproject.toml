@@ -55,7 +55,7 @@ ignore = ["E501", "SIM905"]
 python_version = "3.11"
 strict = true
 mypy_path = "src"
-packages = ["rag_eval"]
+files = ["src", "tests", "scripts"]
 
 [[tool.mypy.overrides]]
 module = ["anthropic.*", "openai.*", "sentence_transformers.*", "sklearn.*", "matplotlib.*"]
