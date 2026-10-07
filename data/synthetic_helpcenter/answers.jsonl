@@ -1,0 +1,55 @@
+{"query_id": "q001", "answers": ["1200 requests per minute"]}
+{"query_id": "q002", "answers": ["4 business hours"]}
+{"query_id": "q003", "answers": ["quoted per contract"]}
+{"query_id": "q004", "answers": ["2 GB per workspace"]}
+{"query_id": "q005", "answers": ["72 hours"]}
+{"query_id": "q006", "answers": ["7 days"]}
+{"query_id": "q007", "answers": ["7 years"]}
+{"query_id": "q008", "answers": ["free for up to 3 seats"]}
+{"query_id": "q009", "answers": ["29 dollars per seat per month"]}
+{"query_id": "q010", "answers": ["250"]}
+{"query_id": "q011", "answers": ["Invoices > Retainers"]}
+{"query_id": "q012", "answers": ["Settings > Data > Export"]}
+{"query_id": "q013", "answers": ["Settings > Members > Roles"]}
+{"query_id": "q014", "answers": ["Settings > Branding > Templates"]}
+{"query_id": "q015", "answers": ["Expenses > Mileage"]}
+{"query_id": "q016", "answers": ["Business"]}
+{"query_id": "q017", "answers": ["Enterprise"]}
+{"query_id": "q018", "answers": ["Business"]}
+{"query_id": "q019", "answers": ["Business"]}
+{"query_id": "q020", "answers": ["Team"]}
+{"query_id": "q021", "answers": ["72 hours"]}
+{"query_id": "q022", "answers": ["6"]}
+{"query_id": "q023", "answers": ["one week"]}
+{"query_id": "q024", "answers": ["3"]}
+{"query_id": "q025", "answers": ["once per pay run"]}
+{"query_id": "q026", "answers": ["on each trigger event"]}
+{"query_id": "q027", "answers": ["every 30 minutes"]}
+{"query_id": "q028", "answers": ["within 1 minute"]}
+{"query_id": "q029", "answers": ["every 5 minutes"]}
+{"query_id": "q030", "answers": ["orders and refunds"]}
+{"query_id": "q031", "answers": ["invoices, vendor bills and the chart of accounts"]}
+{"query_id": "q032", "answers": ["to wait 15 minutes and then retry the sync"]}
+{"query_id": "q033", "answers": ["to choose the version to keep in the Sync conflicts queue"]}
+{"query_id": "q034", "answers": ["to wait 15 minutes and then retry the sync"]}
+{"query_id": "q035", "answers": ["to choose the version to keep in the Sync conflicts queue"]}
+{"query_id": "q036", "answers": ["to reconnect Salesforce under Settings > Integrations"]}
+{"query_id": "q037", "answers": ["to review the field mappings under Settings > Integrations > NetSuite > Mappings"]}
+{"query_id": "q038", "answers": ["an expired Shopify authorization token"]}
+{"query_id": "q039", "answers": ["an expired Google Calendar authorization token"]}
+{"query_id": "q040", "answers": ["a record edited in both Tallyhive and Outlook Calendar at the same time"]}
+{"query_id": "q041", "answers": ["a connected Stripe account without admin permission"]}
+{"query_id": "q042", "answers": ["N followed by I"]}
+{"query_id": "q043", "answers": ["iOS 16 or later and Android 11 or later"]}
+{"query_id": "q044", "answers": ["Settings > Legal > DPA"]}
+{"query_id": "q045", "answers": ["30 days"]}
+{"query_id": "q046", "answers": ["the latest two versions of Chrome, Firefox, Safari and Edge"]}
+{"query_id": "q047", "answers": ["99.9 percent per calendar month"]}
+{"query_id": "q048", "answers": ["250"]}
+{"query_id": "q049", "answers": ["24 hours"]}
+{"query_id": "q050", "answers": ["90 days"]}
+{"query_id": "q051", "answers": ["250"]}
+{"query_id": "q052", "answers": ["72 hours"]}
+{"query_id": "q053", "answers": ["60 requests per minute"]}
+{"query_id": "q054", "answers": ["90 days"]}
+{"query_id": "q055", "answers": ["1 year"]}

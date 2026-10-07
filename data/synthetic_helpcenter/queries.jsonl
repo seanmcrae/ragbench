@@ -1,0 +1,55 @@
+{"_id": "q001", "text": "What is the API rate limit on the Business plan?", "metadata": {"type": "plan_attribute"}}
+{"_id": "q002", "text": "What is the support SLA for Business customers?", "metadata": {"type": "plan_attribute"}}
+{"_id": "q003", "text": "How much does the Enterprise plan cost?", "metadata": {"type": "plan_attribute"}}
+{"_id": "q004", "text": "What is the attachment storage cap for Starter workspaces?", "metadata": {"type": "plan_attribute"}}
+{"_id": "q005", "text": "What is the support SLA for Starter customers?", "metadata": {"type": "plan_attribute"}}
+{"_id": "q006", "text": "What is the audit log retention period for the Starter plan?", "metadata": {"type": "plan_attribute"}}
+{"_id": "q007", "text": "How long are audit logs kept on Enterprise?", "metadata": {"type": "plan_attribute"}}
+{"_id": "q008", "text": "How much does the Starter plan cost?", "metadata": {"type": "plan_attribute"}}
+{"_id": "q009", "text": "How much does the Business plan cost?", "metadata": {"type": "plan_attribute"}}
+{"_id": "q010", "text": "What is the seat cap on Business?", "metadata": {"type": "plan_attribute"}}
+{"_id": "q011", "text": "Where is the setting for retainers?", "metadata": {"type": "feature_location"}}
+{"_id": "q012", "text": "Where is the setting for data export?", "metadata": {"type": "feature_location"}}
+{"_id": "q013", "text": "Where do I set up custom roles?", "metadata": {"type": "feature_location"}}
+{"_id": "q014", "text": "Where do I set up custom invoice templates?", "metadata": {"type": "feature_location"}}
+{"_id": "q015", "text": "How do I turn on mileage tracking?", "metadata": {"type": "feature_location"}}
+{"_id": "q016", "text": "Which plan do I need for purchase orders?", "metadata": {"type": "feature_plan"}}
+{"_id": "q017", "text": "What is the cheapest plan with SCIM provisioning?", "metadata": {"type": "feature_plan"}}
+{"_id": "q018", "text": "What is the cheapest plan with time-off tracking?", "metadata": {"type": "feature_plan"}}
+{"_id": "q019", "text": "What is the cheapest plan with SAML single sign-on?", "metadata": {"type": "feature_plan"}}
+{"_id": "q020", "text": "Which plan do I need for multi-currency invoicing?", "metadata": {"type": "feature_plan"}}
+{"_id": "q021", "text": "What is the webhook retry window?", "metadata": {"type": "feature_limit"}}
+{"_id": "q022", "text": "What is the maximum number of approval steps?", "metadata": {"type": "feature_limit"}}
+{"_id": "q023", "text": "What is the shortest billing interval for a recurring schedule?", "metadata": {"type": "feature_limit"}}
+{"_id": "q024", "text": "What is the maximum number of tax rates per line item?", "metadata": {"type": "feature_limit"}}
+{"_id": "q025", "text": "How often does Gusto sync with Tallyhive?", "metadata": {"type": "integration_sync"}}
+{"_id": "q026", "text": "What is the sync interval for Zapier?", "metadata": {"type": "integration_sync"}}
+{"_id": "q027", "text": "How often does Jira sync with Tallyhive?", "metadata": {"type": "integration_sync"}}
+{"_id": "q028", "text": "How often does Microsoft Teams sync with Tallyhive?", "metadata": {"type": "integration_sync"}}
+{"_id": "q029", "text": "What is the sync interval for Stripe?", "metadata": {"type": "integration_sync"}}
+{"_id": "q030", "text": "What data does the Shopify integration sync?", "metadata": {"type": "integration_objects"}}
+{"_id": "q031", "text": "What data does the NetSuite integration sync?", "metadata": {"type": "integration_objects"}}
+{"_id": "q032", "text": "How do I fix error TH-42920?", "metadata": {"type": "error_fix"}}
+{"_id": "q033", "text": "I'm seeing TH-40904 in the banner. How do I resolve it?", "metadata": {"type": "error_fix"}}
+{"_id": "q034", "text": "How do I fix error TH-42907?", "metadata": {"type": "error_fix"}}
+{"_id": "q035", "text": "How do I fix error TH-40908?", "metadata": {"type": "error_fix"}}
+{"_id": "q036", "text": "How do I fix error TH-40113?", "metadata": {"type": "error_fix"}}
+{"_id": "q037", "text": "I'm seeing TH-42216 in the banner. How do I resolve it?", "metadata": {"type": "error_fix"}}
+{"_id": "q038", "text": "What causes error TH-40110?", "metadata": {"type": "error_cause"}}
+{"_id": "q039", "text": "What causes error TH-40106?", "metadata": {"type": "error_cause"}}
+{"_id": "q040", "text": "What causes error TH-40911?", "metadata": {"type": "error_cause"}}
+{"_id": "q041", "text": "What causes error TH-40325?", "metadata": {"type": "error_cause"}}
+{"_id": "q042", "text": "What is the keyboard shortcut for a new invoice?", "metadata": {"type": "policy"}}
+{"_id": "q043", "text": "Which phone operating systems does the mobile app support?", "metadata": {"type": "policy"}}
+{"_id": "q044", "text": "Where do I sign the DPA?", "metadata": {"type": "policy"}}
+{"_id": "q045", "text": "How long do I have to undo deleting my account?", "metadata": {"type": "policy"}}
+{"_id": "q046", "text": "Which web browsers are supported?", "metadata": {"type": "policy"}}
+{"_id": "q047", "text": "What uptime does Tallyhive guarantee?", "metadata": {"type": "policy"}}
+{"_id": "q048", "text": "What is the seat cap on the cheapest plan that includes SAML single sign-on?", "metadata": {"type": "multi_hop"}}
+{"_id": "q049", "text": "What is the support response target on the cheapest plan that includes custom invoice templates?", "metadata": {"type": "multi_hop"}}
+{"_id": "q050", "text": "What is the audit log retention on the cheapest plan that includes the client portal?", "metadata": {"type": "multi_hop"}}
+{"_id": "q051", "text": "What is the seat cap on the cheapest plan that includes time-off tracking?", "metadata": {"type": "multi_hop"}}
+{"_id": "q052", "text": "What is the support response target on the cheapest plan that includes credit notes?", "metadata": {"type": "multi_hop"}}
+{"_id": "q053", "text": "What API rate limit applies on the minimum plan for the Outlook Calendar integration?", "metadata": {"type": "multi_hop"}}
+{"_id": "q054", "text": "What audit log retention applies on the minimum plan for the Asana integration?", "metadata": {"type": "multi_hop"}}
+{"_id": "q055", "text": "What audit log retention applies on the minimum plan for the Gusto integration?", "metadata": {"type": "multi_hop"}}
