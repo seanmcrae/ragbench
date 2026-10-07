@@ -1,4 +1,4 @@
-.PHONY: install lint format typecheck test demo data scifact ci
+.PHONY: install lint format typecheck test demo data scifact diagram ci
 
 install:
 	uv sync --frozen
@@ -29,5 +29,11 @@ scifact:
 	uv run python scripts/download_scifact.py
 	uv run rag-eval run configs/scifact.yaml
 	uv run rag-eval report runs/scifact
+
+# Re-render the architecture SVG after editing docs/architecture.mmd (needs Node 20+ and a
+# Chromium that Puppeteer can launch; the rendered file is committed, so CI does not need this).
+diagram:
+	npx -y @mermaid-js/mermaid-cli@12 -c docs/mermaid.json -i docs/architecture.mmd \
+		-o docs/img/architecture.svg -b white
 
 ci: lint typecheck test

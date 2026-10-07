@@ -1,0 +1,13 @@
+flowchart LR
+    cfg["Experiment YAML: pipelines, matrix, budget"] --> run
+    data["Dataset: corpus, queries, qrels, answers"] --> run
+    run["Runner: each pipeline x each query"] --> ret
+    ret["Retriever: BM25, dense or hybrid RRF"] --> rr["Reranker (optional)"]
+    rr --> gen["Generator: mock, Anthropic or OpenAI"]
+    gen -->|"agentic: next search"| ret
+    gen <--> cache[("Response cache: SQLite, content-hashed")]
+    gen --> score["Scoring: retrieval, answer, groundedness, judge, latency, cost"]
+    prices["Price table YAML"] --> score
+    score --> results["runs/NAME: per_query.jsonl, summary.csv, manifest.json"]
+    results --> report["rag-eval report: budgeted Pareto pick, bootstrap CIs, MD, HTML, PNG"]
+    results --> compare["rag-eval compare: paired deltas, release gate"]
