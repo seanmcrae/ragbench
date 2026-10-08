@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ragbench: product brief</title>
+<meta name="description" content="Compare RAG and agentic search pipelines on retrieval quality, answer quality, latency and cost-to-serve, and pick one under a budget.">
+<link rel="canonical" href="https://seanmcrae.github.io/ragbench/">
+<style>:root{--ink:#1d2733;--muted:#56657a;--line:#dde3ea;--soft:#f4f6f9;--accent:#b23a2b;--link:#1f5fa8;
+--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:4rem}
+body{margin:0;font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:#fff}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1080px;margin:0 auto;padding:0 1.25rem}
+.topbar{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.95);border-bottom:1px solid var(--line)}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:1rem;height:3.25rem}
+.brand{font-weight:700;color:var(--ink);font-family:var(--mono)}
+nav{display:flex;flex-wrap:wrap;gap:1.1rem;font-size:.92rem}nav a{color:var(--muted)}
+.hero{background:linear-gradient(180deg,var(--soft),#fff);padding:3.5rem 0 1rem;border-bottom:1px solid var(--line)}
+.eyebrow{text-transform:uppercase;letter-spacing:.08em;font-size:.78rem;color:var(--accent);font-weight:600;margin:0}
+.hero h1{font-size:clamp(1.7rem,3.4vw,2.5rem);line-height:1.2;margin:.5rem 0 1rem;max-width:22em}
+.lede{font-size:1.1rem;color:var(--muted);max-width:44em}
+.cta{display:flex;flex-wrap:wrap;gap:.6rem;margin:1.5rem 0}
+.button{display:inline-block;padding:.5rem 1rem;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);font-weight:500}
+.button.primary{background:var(--ink);border-color:var(--ink);color:#fff}.button:hover{text-decoration:none;border-color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1rem;margin:2rem 0}
+.stat{background:#fff;border:1px solid var(--line);border-radius:8px;padding:1rem 1.1rem}
+.stat-label{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.stat-value{font-size:1.6rem;font-weight:700;font-family:var(--mono);margin:.2rem 0;overflow-wrap:anywhere}
+.stat-detail{font-size:.88rem;color:var(--muted)}
+figure{margin:1.5rem 0}figure img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;background:#fff}
+figcaption{font-size:.88rem;color:var(--muted);margin-top:.5rem}
+.diagram img{padding:.75rem}
+.prose{padding-top:2.5rem}
+.prose h2{font-size:1.6rem;border-bottom:1px solid var(--line);padding-bottom:.3rem}
+.prose h3{font-size:1.15rem;margin-top:1.8rem}
+.prose li{margin:.25rem 0}
+.note{color:var(--muted);font-size:.92rem}
+code{font-family:var(--mono);font-size:.88em;background:var(--soft);padding:.1em .3em;border-radius:4px}
+pre{background:#1d2733;color:#e8edf3;padding:1rem;border-radius:8px;overflow-x:auto;font-size:.85rem;line-height:1.5}
+pre code{background:none;padding:0;color:inherit;font-size:inherit}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;margin:1rem 0;font-size:.88rem;width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.45rem .6rem;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{background:var(--soft);font-weight:600}
+.prose table th,.prose table td{text-align:left;white-space:normal}
+#results th,#results td{text-align:right;white-space:nowrap}
+#results th:first-child,#results td:first-child{text-align:left}
+details{margin:.5rem 0 1rem}summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+.with-toc{display:grid;grid-template-columns:220px 1fr;gap:2.5rem;padding-top:2rem}
+.toc{position:sticky;top:4.5rem;align-self:start;font-size:.9rem}
+.toc ul{list-style:none;padding:0;margin:0}.toc li{margin:.35rem 0}
+.toc-title{font-weight:600;margin-top:0}
+.with-toc .prose{padding-top:0}.with-toc h1{margin-top:0}
+.footer{border-top:1px solid var(--line);margin-top:3rem;padding:1.5rem 1.25rem;color:var(--muted);font-size:.88rem}
+@media (max-width:760px){.with-toc{grid-template-columns:1fr}.toc{position:static}nav{gap:.7rem}.topbar-inner{height:auto;padding:.5rem 1.25rem}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="index.html">ragbench</a>
+    <nav>
+      
+      <a href="product.html">Product brief</a>
+      <a href="report.html">Full report</a>
+      <a href="https://github.com/seanmcrae/ragbench">GitHub</a>
+    </nav>
+  </div>
+</header>
+<main>
+
+<div class="wrap with-toc">
+  <aside class="toc">
+    <p class="toc-title">Product brief</p>
+    <ul><li><a href="#problem">Problem</a></li><li><a href="#users-and-jobs-to-be-done">Users and jobs to be done</a></li><li><a href="#scope">Scope</a></li><li><a href="#requirements">Requirements</a></li><li><a href="#success-metrics-and-evals">Success metrics and evals</a></li><li><a href="#minimum-viable-quality">Minimum viable quality</a></li><li><a href="#cost-at-1x-and-10x-usage">Cost at 1x and 10x usage</a></li><li><a href="#trade-offs-and-alternatives-considered">Trade-offs and alternatives considered</a></li><li><a href="#risks">Risks</a></li><li><a href="#roadmap">Roadmap</a></li></ul>
+  </aside>
+  <article class="prose">
+    <h1>ragbench: product brief</h1>
+    <h2 id="problem">Problem</h2>
+<p>Teams that run search or RAG in production change it constantly: a new embedding model, a
+different chunk size, top-k from 5 to 8, a reranker, a cheaper LLM, an agentic loop that
+rewrites queries. Each change moves four things at once: whether the right passages come back,
+whether the answer is right and supported, how long the user waits, and what each query costs.
+Most teams look at one of them. A retrieval engineer reports nDCG, a PM reads twenty answers
+by hand, finance sees the bill a month later, and the latency regression shows up in a
+dashboard after launch.</p>
+<p>The failure mode this repo targets is shipping a change that looks better on the metric
+someone checked and is worse on the ones nobody did. Agentic retrieval is the sharpest
+case: on the bundled synthetic corpus it lifts answer F1 from 0.549 to 0.622 over BM25, a
+statistically significant gain, while cost per 1k queries goes from $0.646 to $1.868 and p95
+latency from 884 ms to 1,962 ms. Whether that is worth it is a product decision, and it
+should be made with all of those numbers and their uncertainty on one page.</p>
+<h2 id="users-and-jobs-to-be-done">Users and jobs to be done</h2>
+<table>
+<thead>
+<tr>
+<th>User</th>
+<th>Job</th>
+<th>What they need from the tool</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AI product manager</td>
+<td>Decide which configuration to ship and defend it</td>
+<td>One recommendation under an explicit budget, the trade-off it rejects, and whether the lift is real</td>
+</tr>
+<tr>
+<td>Search / ML engineer</td>
+<td>Iterate on retrieval and prompts without regressions</td>
+<td>Fast reruns (cache), per-query records, per-type breakdowns, retrieval and answer metrics together</td>
+</tr>
+<tr>
+<td>Platform / release owner</td>
+<td>Block regressions in CI</td>
+<td>A deterministic, key-free check with a pass/fail exit code and a tolerance</td>
+</tr>
+<tr>
+<td>Finance or engineering lead</td>
+<td>Forecast serving cost</td>
+<td>Cost per 1k queries from token usage and a dated, editable price table</td>
+</tr>
+</tbody>
+</table>
+<h2 id="scope">Scope</h2>
+<p><strong>In</strong></p>
+<ul>
+<li>Offline evaluation of retrieve, rerank, generate pipelines, including a multi-step agentic
+  mode with a step budget.</li>
+<li>Retrieval metrics (recall, precision, MRR, nDCG at k), answer metrics (token F1, exact
+  match), groundedness (citation coverage) and a rubric judge with a pluggable LLM backend.</li>
+<li>Per-stage latency percentiles and cost-to-serve per 1k queries.</li>
+<li>Experiment matrices in YAML, cached generations, persisted per-query results.</li>
+<li>Paired bootstrap comparison, a release gate, and a budgeted Pareto recommendation rendered
+  as Markdown, HTML and a chart.</li>
+<li>A bundled synthetic dataset and a loader plus download script for BEIR-format data.</li>
+</ul>
+<p><strong>Out (deliberately)</strong></p>
+<ul>
+<li>Online experimentation, traffic splitting and user-behaviour metrics.</li>
+<li>Hosting an index or serving queries; the retrievers exist to be compared, not deployed.</li>
+<li>Chunking and ingestion pipelines; the harness consumes a corpus that is already chunked.</li>
+<li>Human labeling workflow; qrels and reference answers are inputs.</li>
+<li>Hyperparameter search; the matrix is explicit so every compared config is one a person chose.</li>
+</ul>
+<h2 id="requirements">Requirements</h2>
+<p>Functional</p>
+<ol>
+<li>One YAML file defines the dataset, pipelines (explicit list and/or Cartesian matrix over
+   shared defaults), budget, baseline and quality metric. Invalid configs fail at load with a
+   message naming the field.</li>
+<li><code>rag-eval run</code> scores every pipeline on every evaluable query and writes
+   <code>per_query.jsonl</code>, <code>summary.csv</code> and a <code>manifest.json</code> that pins dataset fingerprint, price
+   table date and the resolved config.</li>
+<li><code>rag-eval report</code> writes a Markdown report, a single-file HTML report and a PNG chart, and
+   prints the recommendation; the budget and metric can be overridden without rerunning.</li>
+<li><code>rag-eval compare A B</code> prints paired deltas with 95% CIs for quality, judge, groundedness,
+   nDCG@5 and MRR plus cost and p95 deltas; <code>--fail-on-regression</code> exits 1 when the gate fails.</li>
+<li>Hosted providers (Anthropic, OpenAI) are optional extras configured per pipeline; API keys
+   come only from the environment.</li>
+</ol>
+<p>Non-functional</p>
+<ul>
+<li>Runs fully offline with no keys; tests use no network.</li>
+<li>Deterministic results for a given config and seed (latency aside, which is measured).</li>
+<li>A warm rerun makes no generator or judge calls: the second run of an unchanged config
+  reports zero cache misses (asserted in tests).</li>
+<li>The bundled demo (8 pipelines, 55 queries) stays fast enough to run on every pull request:
+  about 6 seconds cold, cache empty, in a 2-vCPU sandbox.</li>
+</ul>
+<h2 id="success-metrics-and-evals">Success metrics and evals</h2>
+<p>How the tool measures itself, and the evidence it currently has:</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Target</th>
+<th>Current evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Metric correctness</td>
+<td>Every metric matches a hand computation</td>
+<td>Hand-computed unit tests for recall, precision, MRR, nDCG, F1/EM, RRF, BM25 scoring and cost</td>
+</tr>
+<tr>
+<td>Retrieval fidelity on a public benchmark</td>
+<td>BM25 within a few points of published numbers</td>
+<td>0.641 nDCG@10 on SciFact test vs 0.665 reported for BM25 in the BEIR paper (local run, not CI)</td>
+</tr>
+<tr>
+<td>Sensitivity</td>
+<td>Detects a real effect at the bundled sample size</td>
+<td>Agentic multi-hop gain flagged significant (p=0.038); identical pipelines produce a zero-width CI</td>
+</tr>
+<tr>
+<td>Specificity</td>
+<td>Does not gate on noise</td>
+<td>Gate requires a CI entirely below zero and a drop beyond tolerance; tested on a synthetic regression</td>
+</tr>
+<tr>
+<td>Reproducibility</td>
+<td>Same inputs, same results</td>
+<td>Seeded generator, committed data hash-checked in tests, cache-served reruns produce identical records</td>
+</tr>
+<tr>
+<td>Time to decision</td>
+<td>One command from config to recommendation</td>
+<td><code>make demo</code></td>
+</tr>
+</tbody>
+</table>
+<p>Adoption signals worth tracking once others use it: share of retrieval or prompt changes that
+go through <code>compare</code> before merge, number of regressions caught by the gate, and how often
+the shipped config matches the report's recommendation.</p>
+<h2 id="minimum-viable-quality">Minimum viable quality</h2>
+<p>Two bars: one for the harness itself (can its numbers be trusted?) and one for a configuration it
+recommends (should a team ship it?). The second set is the default reading of a report; a team
+with its own data should set its own budget and tolerance. "Current" is the bundled demo and a
+local SciFact run.</p>
+<p><strong>The harness</strong></p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Do not ship</th>
+<th>Ship</th>
+<th>Delight</th>
+<th>Current</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BM25 nDCG@10 on BEIR SciFact vs the published 0.665</td>
+<td>More than 0.05 below</td>
+<td>Within 0.03</td>
+<td>Within 0.01</td>
+<td>0.641, 0.024 below: ship</td>
+</tr>
+<tr>
+<td>Hand-computed metric tests (recall, MRR, nDCG, F1/EM, RRF, BM25, cost)</td>
+<td>Any failing</td>
+<td>All pass</td>
+<td>All pass, plus a public-benchmark check in CI</td>
+<td>All pass; SciFact is local only: ship</td>
+</tr>
+<tr>
+<td>Gate specificity</td>
+<td>Gate fails on two identical pipelines</td>
+<td>Identical pipelines give a zero-width CI and pass</td>
+<td>Also passes on a seeded no-op change</td>
+<td>Zero-width CI asserted in tests: ship</td>
+</tr>
+</tbody>
+</table>
+<p><strong>A recommended configuration</strong> (consistent with <code>compare --fail-on-regression</code> and the report's
+budget logic)</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Do not ship</th>
+<th>Ship</th>
+<th>Delight</th>
+<th>Current (<code>dense-lsa-k3</code> vs <code>bm25-k5</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Answer F1 vs baseline</td>
+<td>95% CI entirely below zero by more than the tolerance (gate fails)</td>
+<td>Gate passes and the point estimate is at least zero</td>
+<td>CI lower bound above zero (significant lift)</td>
+<td>+0.057, CI [-0.013, +0.145]: ship, not delight</td>
+</tr>
+<tr>
+<td>Groundedness</td>
+<td>Below 0.85</td>
+<td>At least 0.90</td>
+<td>At least 0.95</td>
+<td>0.909: ship</td>
+</tr>
+<tr>
+<td>Cost and p95 against the stated budget</td>
+<td>Over either cap</td>
+<td>Within both</td>
+<td>Within half of both</td>
+<td>$0.475 of $1.00, 862 of 1,500 ms: ship (delight on cost only)</td>
+</tr>
+<tr>
+<td>Per query type</td>
+<td>A type the baseline answers drops to 0.00</td>
+<td>No such drop</td>
+<td>No type below 0.50</td>
+<td><code>feature_location</code> falls 0.56 to 0.39 but not to zero; <code>integration_objects</code> and <code>multi_hop</code> are 0.00 for both: ship</td>
+</tr>
+</tbody>
+</table>
+<p>The agentic <code>hybrid-rerank-agent3-k5</code> is the only configuration that reaches delight on answer
+F1 (+0.073, CI [+0.018, +0.145]), and it fails the budget bar on both cost and p95. That is the
+trade the report is built to surface.</p>
+<h2 id="cost-at-1x-and-10x-usage">Cost at 1x and 10x usage</h2>
+<p>Estimates only. They multiply the measured cost per 1k queries by a volume; nothing here comes
+from a real deployment. Prices are the illustrative table in <code>configs/prices.yaml</code> (dated
+2026-10-07) with the offline mock's token counts priced as <code>claude-haiku-4-5</code>, and those counts
+are approximate (about 4 characters per token). <strong>1x is a round 1M queries per month</strong>, chosen
+for illustration.</p>
+<p>Serving cost (generation only):</p>
+<table>
+<thead>
+<tr>
+<th>Configuration (data)</th>
+<th style="text-align: right;">$ per 1k queries</th>
+<th style="text-align: right;">1x: 1M queries / month</th>
+<th style="text-align: right;">10x: 10M queries / month</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dense-lsa-k3</code> (synthetic, recommended)</td>
+<td style="text-align: right;">0.475</td>
+<td style="text-align: right;">about $475</td>
+<td style="text-align: right;">about $4,750</td>
+</tr>
+<tr>
+<td><code>bm25-k5</code> (synthetic, baseline)</td>
+<td style="text-align: right;">0.646</td>
+<td style="text-align: right;">about $646</td>
+<td style="text-align: right;">about $6,460</td>
+</tr>
+<tr>
+<td><code>hybrid-rerank-agent3-k5</code> (synthetic, agentic)</td>
+<td style="text-align: right;">1.868</td>
+<td style="text-align: right;">about $1,868</td>
+<td style="text-align: right;">about $18,680</td>
+</tr>
+<tr>
+<td><code>bm25-k5</code> (SciFact, long abstracts)</td>
+<td style="text-align: right;">2.852</td>
+<td style="text-align: right;">about $2,852</td>
+<td style="text-align: right;">about $28,520</td>
+</tr>
+</tbody>
+</table>
+<p>Generation cost scales linearly with volume, so 10x is 10x; what moves the line is prompt length
+(top-k and passage size) and step count. The figures exclude corpus indexing, embedding calls for
+API embedders, the judge, and hosting. At 10x the in-memory BM25 and dense indexes would also need
+a real search service, which this repo does not cost.</p>
+<p>Evaluation cost (running the harness with a hosted generator at the same prices, judge excluded):</p>
+<table>
+<thead>
+<tr>
+<th>Run</th>
+<th style="text-align: right;">Generations</th>
+<th style="text-align: right;">Estimated cost per cold run</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Demo matrix, 8 pipelines x 55 queries (1x eval set)</td>
+<td style="text-align: right;">440</td>
+<td style="text-align: right;">about $0.45</td>
+</tr>
+<tr>
+<td>Same matrix on a 10x eval set (550 queries)</td>
+<td style="text-align: right;">4,400</td>
+<td style="text-align: right;">about $4.50</td>
+</tr>
+<tr>
+<td>SciFact, 3 pipelines x 300 queries</td>
+<td style="text-align: right;">900</td>
+<td style="text-align: right;">about $2.34</td>
+</tr>
+</tbody>
+</table>
+<p>The response cache makes reruns of unchanged configurations free, so the recurring cost is
+proportional to what changed, not to the matrix size. An LLM judge would add its own per-query
+cost, which has not been measured here.</p>
+<h2 id="trade-offs-and-alternatives-considered">Trade-offs and alternatives considered</h2>
+<ul>
+<li><strong>LLM-as-judge versus heuristic judge.</strong> LLM judges catch paraphrased correctness and
+  unsupported claims that lexical overlap misses, but they favour longer answers, can prefer
+  outputs from their own model family, drift when the provider updates the model, and cost
+  money per evaluation. The heuristic judge is free, deterministic and transparent, but it
+  agrees with token F1 by construction (on the demo, judge and F1 deltas are identical).
+  Decision: the heuristic is the default so CI is stable; the LLM judge shares the same rubric,
+  should come from a different model family than the generator, and its scores should be
+  spot-checked against a small human-labeled set before anyone trusts them.</li>
+<li><strong>Synthetic versus real data.</strong> Synthetic data is free, licence-clean, controllable (we can
+  plant multi-hop questions and graded qrels) and makes the repo runnable anywhere. It is also
+  templated: one domain, one writing style, copular fact sentences that an extractive reader
+  exploits, and 55 queries. It validates the harness, not a retrieval choice. BEIR loading is
+  there so the same configs run on public data, and the real use is a team's own logged
+  queries with labeled answers.</li>
+<li><strong>Offline versus online metrics.</strong> Offline metrics are cheap, repeatable and safe to gate on;
+  they cannot see user behaviour, query-distribution shift or the value of a faster answer.
+  The tool is a pre-launch filter that decides what is worth an online test, not a substitute
+  for one.</li>
+<li><strong>Modeled versus measured latency.</strong> A modeled generation latency keeps the latency axis
+  meaningful offline and stable across machines, but it encodes assumptions (350 ms overhead,
+  15 ms per output token). Reports label it; hosted runs replace it with wall-clock.</li>
+<li><strong>Paired bootstrap versus t-test.</strong> Answer metrics are bounded and often bimodal (right or
+  wrong), so normality is a poor assumption at n=55. The paired bootstrap makes no
+  distributional assumption and pairing removes per-question difficulty. A permutation test
+  would be equally valid; the bootstrap also gives an interval, which is what a decision needs.</li>
+<li><strong>Rank fusion versus learned or score fusion.</strong> RRF needs no training data and no score
+  calibration. A learned fusion could do better but needs labels the user may not have.</li>
+<li><strong>Single recommendation versus a dashboard.</strong> A frontier plot alone leaves the decision to
+  the reader. The report commits to one config under the stated budget and lists what each
+  rejected config would have cost, so the decision and its alternatives are both explicit.</li>
+</ul>
+<h2 id="risks">Risks</h2>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Users read synthetic-data results as evidence about their system</td>
+<td>Every report states the dataset and fingerprint; README and this doc frame the corpus as a harness check</td>
+</tr>
+<tr>
+<td>Over-trusting small samples</td>
+<td>Reports always show CIs and say "no significant difference" when the interval spans zero, including for the recommended config</td>
+</tr>
+<tr>
+<td>Judge bias or drift silently changes scores</td>
+<td>Judge identity is part of the cache key and manifest; heuristic default in CI; guidance to calibrate LLM judges against human labels</td>
+</tr>
+<tr>
+<td>Stale prices mislead cost decisions</td>
+<td>Price table is dated and labeled illustrative; unknown models fail loudly</td>
+</tr>
+<tr>
+<td>Mock heuristics mistaken for LLM behaviour</td>
+<td>Mock is documented as a lexical stand-in; agentic results on the demo describe the heuristic planner</td>
+</tr>
+<tr>
+<td>Goodhart on the gate metric</td>
+<td>Compare shows quality, groundedness, retrieval, cost and latency together, not only the gated metric</td>
+</tr>
+</tbody>
+</table>
+<h2 id="roadmap">Roadmap</h2>
+<p><strong>Now (in this repo)</strong></p>
+<ul>
+<li>Retrievers (BM25, dense, hybrid RRF), reranker interface, extractive mock and hosted
+  generators, agentic loop, metric suite, cost model, cache, matrix configs, bootstrap
+  comparisons, budgeted recommendation, reports, CLI, CI.</li>
+</ul>
+<p><strong>Next</strong></p>
+<ul>
+<li>Per-query diff view in the report: the questions where two configs disagree, with both
+  answers and contexts, since that is where reviewers actually learn something.</li>
+<li>Judge calibration: import a small human-labeled set and report judge agreement (Cohen's
+  kappa) next to judge scores.</li>
+<li>Multiple-comparison control (Holm) when a report compares many configs to one baseline.</li>
+<li>Chunking as a matrix axis, with chunk-level qrels mapped from document-level judgements.</li>
+<li>GitHub Actions summary output so the gate result and key deltas appear on the pull request.</li>
+</ul>
+<p><strong>Later</strong></p>
+<ul>
+<li>Production query sampling: build evaluation sets from logged queries, stratified by
+  intent, with active selection of which ones to label.</li>
+<li>Online-offline correlation tracking: record which offline deltas predicted online wins.</li>
+<li>Cost forecasting by traffic mix (query types weighted by real volume) rather than by the
+  evaluation set's mix.</li>
+<li>Async and batched API execution with rate-limit handling for large hosted runs.</li>
+</ul>
+  </article>
+</div>
+
+</main>
+<footer class="wrap footer">
+  <p>ragbench 0.1.0 &middot; MIT License &middot; Sean McRae &middot;
+  <a href="https://github.com/seanmcrae/ragbench">Source on GitHub</a>.
+  Results on this site are from the bundled synthetic corpus, regenerated by CI on every push.</p>
+</footer>
+</body>
+</html>

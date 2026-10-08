@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ragbench: evaluate RAG and agentic search on quality, latency and cost</title>
+<meta name="description" content="Compare RAG and agentic search pipelines on retrieval quality, answer quality, latency and cost-to-serve, and pick one under a budget.">
+<link rel="canonical" href="https://seanmcrae.github.io/ragbench/">
+<style>:root{--ink:#1d2733;--muted:#56657a;--line:#dde3ea;--soft:#f4f6f9;--accent:#b23a2b;--link:#1f5fa8;
+--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:4rem}
+body{margin:0;font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:#fff}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1080px;margin:0 auto;padding:0 1.25rem}
+.topbar{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.95);border-bottom:1px solid var(--line)}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:1rem;height:3.25rem}
+.brand{font-weight:700;color:var(--ink);font-family:var(--mono)}
+nav{display:flex;flex-wrap:wrap;gap:1.1rem;font-size:.92rem}nav a{color:var(--muted)}
+.hero{background:linear-gradient(180deg,var(--soft),#fff);padding:3.5rem 0 1rem;border-bottom:1px solid var(--line)}
+.eyebrow{text-transform:uppercase;letter-spacing:.08em;font-size:.78rem;color:var(--accent);font-weight:600;margin:0}
+.hero h1{font-size:clamp(1.7rem,3.4vw,2.5rem);line-height:1.2;margin:.5rem 0 1rem;max-width:22em}
+.lede{font-size:1.1rem;color:var(--muted);max-width:44em}
+.cta{display:flex;flex-wrap:wrap;gap:.6rem;margin:1.5rem 0}
+.button{display:inline-block;padding:.5rem 1rem;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);font-weight:500}
+.button.primary{background:var(--ink);border-color:var(--ink);color:#fff}.button:hover{text-decoration:none;border-color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1rem;margin:2rem 0}
+.stat{background:#fff;border:1px solid var(--line);border-radius:8px;padding:1rem 1.1rem}
+.stat-label{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.stat-value{font-size:1.6rem;font-weight:700;font-family:var(--mono);margin:.2rem 0;overflow-wrap:anywhere}
+.stat-detail{font-size:.88rem;color:var(--muted)}
+figure{margin:1.5rem 0}figure img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;background:#fff}
+figcaption{font-size:.88rem;color:var(--muted);margin-top:.5rem}
+.diagram img{padding:.75rem}
+.prose{padding-top:2.5rem}
+.prose h2{font-size:1.6rem;border-bottom:1px solid var(--line);padding-bottom:.3rem}
+.prose h3{font-size:1.15rem;margin-top:1.8rem}
+.prose li{margin:.25rem 0}
+.note{color:var(--muted);font-size:.92rem}
+code{font-family:var(--mono);font-size:.88em;background:var(--soft);padding:.1em .3em;border-radius:4px}
+pre{background:#1d2733;color:#e8edf3;padding:1rem;border-radius:8px;overflow-x:auto;font-size:.85rem;line-height:1.5}
+pre code{background:none;padding:0;color:inherit;font-size:inherit}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;margin:1rem 0;font-size:.88rem;width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.45rem .6rem;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{background:var(--soft);font-weight:600}
+.prose table th,.prose table td{text-align:left;white-space:normal}
+#results th,#results td{text-align:right;white-space:nowrap}
+#results th:first-child,#results td:first-child{text-align:left}
+details{margin:.5rem 0 1rem}summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+.with-toc{display:grid;grid-template-columns:220px 1fr;gap:2.5rem;padding-top:2rem}
+.toc{position:sticky;top:4.5rem;align-self:start;font-size:.9rem}
+.toc ul{list-style:none;padding:0;margin:0}.toc li{margin:.35rem 0}
+.toc-title{font-weight:600;margin-top:0}
+.with-toc .prose{padding-top:0}.with-toc h1{margin-top:0}
+.footer{border-top:1px solid var(--line);margin-top:3rem;padding:1.5rem 1.25rem;color:var(--muted);font-size:.88rem}
+@media (max-width:760px){.with-toc{grid-template-columns:1fr}.toc{position:static}nav{gap:.7rem}.topbar-inner{height:auto;padding:.5rem 1.25rem}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="index.html">ragbench</a>
+    <nav>
+      
+      <a href="#quickstart">Quickstart</a>
+      <a href="#results">Results</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#limitations">Limitations</a>
+
+      <a href="product.html">Product brief</a>
+      <a href="report.html">Full report</a>
+      <a href="https://github.com/seanmcrae/ragbench">GitHub</a>
+    </nav>
+  </div>
+</header>
+<main>
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Open-source evaluation harness</p>
+    <h1>Choose a RAG configuration on evidence: quality, latency and cost, with confidence intervals.</h1>
+    <p class="lede">ragbench runs a matrix of retrieval and agentic search pipelines over the same
+    queries, scores retrieval, answers, groundedness, latency and cost-to-serve, and recommends the
+    best configuration under your budget. It runs offline with no API keys; Anthropic and OpenAI
+    adapters are optional.</p>
+    <p class="cta">
+      <a class="button primary" href="#quickstart">Quickstart</a>
+      <a class="button" href="https://github.com/seanmcrae/ragbench">View on GitHub</a>
+      <a class="button" href="report.html">Full report</a>
+    </p>
+    <div class="stats">
+      
+      <div class="stat">
+        <div class="stat-label">Pipelines compared</div>
+        <div class="stat-value">8</div>
+        <div class="stat-detail">over 55 queries, 176 documents</div>
+      </div>
+      
+      <div class="stat">
+        <div class="stat-label">Recommended under budget</div>
+        <div class="stat-value">dense-lsa-k3</div>
+        <div class="stat-detail">answer_f1 0.606, $0.475 per 1k queries, p95 862 ms</div>
+      </div>
+      
+      <div class="stat">
+        <div class="stat-label">Best answer_f1 vs baseline</div>
+        <div class="stat-value">+0.073</div>
+        <div class="stat-detail">hybrid-rerank-agent3-k5 vs bm25-k5, 95% CI [+0.018, +0.145] (significant), at 2.9x the cost and 2.2x the p95</div>
+      </div>
+      
+    </div>
+    <figure class="chart">
+      <img src="img/quality_vs_cost.png" alt="answer_f1 versus cost per 1,000 queries for every pipeline, with the Pareto frontier and the cost budget">
+      <figcaption>answer_f1 against cost per 1,000 queries on the bundled synthetic
+      help-center corpus. The star is the recommended configuration; the vertical line is the
+      cost budget.</figcaption>
+    </figure>
+  </div>
+</section>
+
+
+<section id="quickstart" class="wrap prose"><h2>Quickstart</h2><p>Requires Python 3.11+ and <a href="https://docs.astral.sh/uv/">uv</a>. One command runs the whole demo
+offline, with no API keys:</p>
+<pre><code class="language-bash">git clone https://github.com/seanmcrae/ragbench.git &amp;&amp; cd ragbench &amp;&amp; make demo
+</code></pre>
+<p><code>make demo</code> runs these three steps, which you can also run one at a time:</p>
+<pre><code class="language-bash">uv run rag-eval run configs/example.yaml                 # 8 pipelines x 55 queries
+uv run rag-eval report --img-dir docs/img                # runs/example/report.{md,html} + chart
+uv run rag-eval compare bm25-k5 hybrid-rerank-agent3-k5  # paired deltas with 95% CIs
+</code></pre>
+<p>Other targets: <code>make ci</code> (lint, format check, type check, tests), <code>make site</code> (the static docs
+site in <code>site/</code>), <code>make scifact</code> (optional public benchmark, downloads about 3 MB). To use a
+hosted model instead of the mock, install an extra and export its key:</p>
+<pre><code class="language-bash">uv sync --frozen --extra anthropic &amp;&amp; export ANTHROPIC_API_KEY=...
+# in the experiment YAML: generator: {provider: anthropic, model: claude-haiku-4-5}
+#                         judge:     {provider: openai, model: gpt-4o-mini}
+</code></pre></section>
+
+
+<section id="results" class="wrap prose">
+  <h2>Results</h2>
+  <p class="note">Generated by <code>make site</code> from <code>rag-eval run configs/example.yaml</code>
+  (experiment <code>example</code>). Nothing below is typed by hand.</p>
+  <p>Dataset: synthetic-helpcenter (176 documents, 55 queries, fingerprint 32cc21df822d5c4e). Prices: illustrative table dated 2026-10-07. Run created 2026-10-08T07:36:22+00:00.</p><p>Generation latency comes from the offline mock's token-based latency model, not from a live API; retrieval latency is measured wall-clock.</p>
+  <h3>Recommendation</h3>
+  <p>Budget: cost &lt;= $1.00 per 1k queries and p95 latency &lt;= 1,500 ms. Selection: highest answer_f1 on the in-budget Pareto frontier.</p><p>Recommended: <strong>dense-lsa-k3</strong> (answer_f1 0.606, $0.475 per 1k queries, p95 862 ms).</p><p>Versus the baseline bm25-k5: +0.057 answer_f1 [-0.013, +0.145], no significant difference at 95% over 55 queries.</p><p>Best answer_f1 regardless of budget: hybrid-rerank-agent3-k5 (0.622, +0.016 vs the recommendation) at 3.9x the cost and 2.3x the p95 latency.</p><p>In-budget Pareto frontier (cheapest first): dense-lsa-k3.</p><p>In budget but dominated: bm25-k5, hybrid-k5, hybrid-rerank-k5, dense-lsa-k5.</p><p>Over budget: hybrid-rerank-agent3-k5 (cost $1.868/1k &gt; $1.00; p95 1961 ms &gt; 1500 ms); dense-lsa-agent3-k3 (cost $1.337/1k &gt; $1.00; p95 1877 ms &gt; 1500 ms); dense-lsa-agent3-k5 (cost $1.916/1k &gt; $1.00; p95 1928 ms &gt; 1500 ms).</p>
+  
+  <h3>All pipelines</h3>
+  
+  <div class="table-scroll"><table>
+    <thead><tr><th>pipeline</th><th>answer_f1</th><th>exact_match</th><th>judge_score</th><th>groundedness</th><th>nDCG@5</th><th>recall@5</th><th>MRR</th><th>p50 ms</th><th>p95 ms</th><th>$/1k q</th><th>steps</th></tr></thead>
+    <tbody><tr><td>bm25-k5</td><td>0.549</td><td>0.418</td><td>0.573</td><td>0.909</td><td>0.802</td><td>0.818</td><td>0.891</td><td>652</td><td>884</td><td>0.646</td><td>1.00</td></tr><tr><td>hybrid-k5</td><td>0.552</td><td>0.436</td><td>0.573</td><td>0.909</td><td>0.810</td><td>0.818</td><td>0.938</td><td>652</td><td>874</td><td>0.650</td><td>1.00</td></tr><tr><td>hybrid-rerank-k5</td><td>0.549</td><td>0.418</td><td>0.573</td><td>0.909</td><td>0.795</td><td>0.809</td><td>0.903</td><td>679</td><td>885</td><td>0.651</td><td>1.00</td></tr><tr><td>hybrid-rerank-agent3-k5</td><td>0.622</td><td>0.491</td><td>0.645</td><td>0.927</td><td>0.795</td><td>0.809</td><td>0.903</td><td>1,603</td><td>1,961</td><td>1.868</td><td>1.67</td></tr><tr><td>dense-lsa-k3</td><td>0.606</td><td>0.491</td><td>0.627</td><td>0.909</td><td>0.830</td><td>0.818</td><td>0.979</td><td>635</td><td>862</td><td>0.475</td><td>1.00</td></tr><tr><td>dense-lsa-agent3-k3</td><td>0.570</td><td>0.455</td><td>0.591</td><td>0.927</td><td>0.827</td><td>0.800</td><td>0.979</td><td>1,545</td><td>1,877</td><td>1.337</td><td>1.73</td></tr><tr><td>dense-lsa-k5</td><td>0.606</td><td>0.491</td><td>0.627</td><td>0.909</td><td>0.830</td><td>0.818</td><td>0.979</td><td>647</td><td>875</td><td>0.647</td><td>1.00</td></tr><tr><td>dense-lsa-agent3-k5</td><td>0.570</td><td>0.455</td><td>0.591</td><td>0.927</td><td>0.830</td><td>0.818</td><td>0.979</td><td>1,599</td><td>1,928</td><td>1.916</td><td>1.65</td></tr></tbody>
+  </table></div>
+  
+  <h3>Versus the baseline (bm25-k5)</h3>
+  <p>Paired bootstrap over queries: difference in mean answer_f1 with a 95% percentile interval.</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th>pipeline</th><th>delta answer_f1</th><th>95% CI</th><th>p</th><th>verdict</th></tr></thead>
+    <tbody><tr><td>hybrid-k5</td><td>+0.003</td><td>[-0.047, +0.055]</td><td>0.956</td><td>no significant difference</td></tr><tr><td>hybrid-rerank-k5</td><td>+0.000</td><td>[+0.000, +0.000]</td><td>1.000</td><td>no significant difference</td></tr><tr><td>hybrid-rerank-agent3-k5</td><td>+0.073</td><td>[+0.018, +0.145]</td><td>0.038</td><td>better</td></tr><tr><td>dense-lsa-k3</td><td>+0.057</td><td>[-0.013, +0.145]</td><td>0.095</td><td>no significant difference</td></tr><tr><td>dense-lsa-agent3-k3</td><td>+0.021</td><td>[-0.031, +0.091]</td><td>0.455</td><td>no significant difference</td></tr><tr><td>dense-lsa-k5</td><td>+0.057</td><td>[-0.013, +0.145]</td><td>0.095</td><td>no significant difference</td></tr><tr><td>dense-lsa-agent3-k5</td><td>+0.021</td><td>[-0.031, +0.091]</td><td>0.455</td><td>no significant difference</td></tr></tbody>
+  </table></div>
+  
+  <h3>answer_f1 by query type</h3>
+  
+  <div class="table-scroll"><table>
+    <thead><tr><th>pipeline</th><th>error_cause</th><th>error_fix</th><th>feature_limit</th><th>feature_location</th><th>feature_plan</th><th>integration_objects</th><th>integration_sync</th><th>multi_hop</th><th>plan_attribute</th><th>policy</th></tr></thead>
+    <tbody><tr><td>bm25-k5</td><td>0.85</td><td>0.69</td><td>1.00</td><td>0.56</td><td>0.80</td><td>0.00</td><td>0.40</td><td>0.00</td><td>0.71</td><td>0.46</td></tr><tr><td>hybrid-k5</td><td>0.85</td><td>0.69</td><td>1.00</td><td>0.39</td><td>0.80</td><td>0.00</td><td>0.60</td><td>0.00</td><td>0.71</td><td>0.46</td></tr><tr><td>hybrid-rerank-k5</td><td>0.85</td><td>0.69</td><td>1.00</td><td>0.56</td><td>0.80</td><td>0.00</td><td>0.40</td><td>0.00</td><td>0.71</td><td>0.46</td></tr><tr><td>hybrid-rerank-agent3-k5</td><td>0.85</td><td>0.69</td><td>1.00</td><td>0.56</td><td>0.80</td><td>0.00</td><td>0.40</td><td>0.50</td><td>0.71</td><td>0.46</td></tr><tr><td>dense-lsa-k3</td><td>0.85</td><td>0.69</td><td>1.00</td><td>0.39</td><td>0.80</td><td>0.00</td><td>1.00</td><td>0.00</td><td>0.81</td><td>0.46</td></tr><tr><td>dense-lsa-agent3-k3</td><td>0.85</td><td>0.69</td><td>1.00</td><td>0.39</td><td>0.80</td><td>0.00</td><td>0.40</td><td>0.12</td><td>0.81</td><td>0.46</td></tr><tr><td>dense-lsa-k5</td><td>0.85</td><td>0.69</td><td>1.00</td><td>0.39</td><td>0.80</td><td>0.00</td><td>1.00</td><td>0.00</td><td>0.81</td><td>0.46</td></tr><tr><td>dense-lsa-agent3-k5</td><td>0.85</td><td>0.69</td><td>1.00</td><td>0.39</td><td>0.80</td><td>0.00</td><td>0.40</td><td>0.12</td><td>0.81</td><td>0.46</td></tr></tbody>
+  </table></div>
+  
+  <h3>hybrid-rerank-agent3-k5 vs bm25-k5, every metric</h3>
+  <p>The highest-quality configuration regardless of budget, against the baseline. Same output as <code>rag-eval compare bm25-k5 hybrid-rerank-agent3-k5</code>.</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th>metric</th><th>bm25-k5</th><th>hybrid-rerank-agent3-k5</th><th>delta</th><th>95% CI</th><th>p</th></tr></thead>
+    <tbody><tr><td>answer_f1</td><td>0.549</td><td>0.622</td><td>+0.073</td><td>[+0.018, +0.145]</td><td>0.038</td></tr><tr><td>exact_match</td><td>0.418</td><td>0.491</td><td>+0.073</td><td>[+0.018, +0.145]</td><td>0.038</td></tr><tr><td>judge_score</td><td>0.573</td><td>0.645</td><td>+0.073</td><td>[+0.018, +0.145]</td><td>0.038</td></tr><tr><td>groundedness</td><td>0.909</td><td>0.927</td><td>+0.018</td><td>[+0.000, +0.055]</td><td>0.695</td></tr><tr><td>ndcg@5</td><td>0.802</td><td>0.795</td><td>-0.007</td><td>[-0.027, +0.016]</td><td>0.485</td></tr><tr><td>mrr</td><td>0.891</td><td>0.903</td><td>+0.012</td><td>[-0.009, +0.039]</td><td>0.450</td></tr><tr><td>$/1k queries</td><td>0.646</td><td>1.868</td><td>+1.222</td><td></td><td></td></tr><tr><td>p95 ms</td><td>884</td><td>1,961</td><td>+1,077</td><td></td><td></td></tr></tbody>
+  </table></div>
+  
+</section>
+
+
+<section id="how-evaluation-works" class="wrap prose"><h2>How evaluation works</h2><ol>
+<li><strong>Run.</strong> Each pipeline answers every query: retrieve top-k (optionally rerank from a deeper
+   pool), build a prompt from the passages, generate an answer with <code>[doc-id]</code> citations. An
+   agentic pipeline may ask for another search, up to <code>max_steps</code>. Every stage is timed and
+   every completion records its token usage.</li>
+<li><strong>Score each query.</strong><ul>
+<li><em>Retrieval</em>: recall@k, precision@k, MRR and nDCG@k against graded qrels (2 = states the
+  answer, 1 = supporting or bridge document).</li>
+<li><em>Answer</em>: SQuAD-style token F1 and exact match against the reference answers.</li>
+<li><em>Groundedness</em>: share of answer sentences that cite a retrieved document, times the share
+  of the answer's content terms found in the documents it cites. Uncited answers score 0.</li>
+<li><em>Judge</em>: a 1-5 rubric (correct, complete, supported by cited passages) normalised to
+  [0, 1]; the offline judge maps F1 and citation coverage onto it, an LLM judge reads the
+  passages.</li>
+<li><em>Latency and cost</em>: per-stage wall-clock (modeled for the mock generator), and tokens
+  priced from <code>configs/prices.yaml</code>.</li>
+</ul>
+</li>
+<li><strong>Summarise.</strong> Means per pipeline, p50/p95 latency, cost per 1k queries, quality by query
+   type.</li>
+<li><strong>Decide.</strong> Drop configurations over the cost or p95 budget (reasons recorded), take the
+   Pareto frontier of (quality, cost, p95) among the rest, and pick the highest quality, ties
+   to cheaper then faster. Deltas against the baseline use a paired bootstrap over queries.</li>
+<li><strong>Gate.</strong> <code>rag-eval compare A B --fail-on-regression</code> exits 1 only when B's gate metric is
+   significantly worse than A's (the CI excludes zero) and the drop exceeds <code>--tolerance</code>.</li>
+</ol></section>
+
+<section id="architecture" class="wrap prose"><h2>Architecture</h2><figure class="diagram"><img src="img/architecture.svg" alt="Architecture: runner, retrievers, reranker, generator, cache, scoring and reports"></figure>
+<details><summary>Mermaid source</summary><pre><code>flowchart LR
+    cfg["Experiment YAML: pipelines, matrix, budget"] --&gt; run
+    data["Dataset: corpus, queries, qrels, answers"] --&gt; run
+    run["Runner: each pipeline x each query"] --&gt; ret
+    ret["Retriever: BM25, dense or hybrid RRF"] --&gt; rr["Reranker (optional)"]
+    rr --&gt; gen["Generator: mock, Anthropic or OpenAI"]
+    gen --&gt;|"agentic: next search"| ret
+    gen &lt;--&gt; cache[("Response cache: SQLite, content-hashed")]
+    gen --&gt; score["Scoring: retrieval, answer, groundedness, judge, latency, cost"]
+    prices["Price table YAML"] --&gt; score
+    score --&gt; results["runs/NAME: per_query.jsonl, summary.csv, manifest.json"]
+    results --&gt; report["rag-eval report: budgeted Pareto pick, bootstrap CIs, MD, HTML, PNG"]
+    results --&gt; compare["rag-eval compare: paired deltas, release gate"]
+</code></pre></details>
+
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>datasets/</code></td>
+<td><code>Dataset</code> model, BEIR-format loader/writer, seeded synthetic generator</td>
+</tr>
+<tr>
+<td><code>retrieval/</code></td>
+<td>BM25, dense retrieval over pluggable embedders, RRF hybrid, rerankers</td>
+</tr>
+<tr>
+<td><code>generation/</code></td>
+<td><code>Generator</code> protocol, extractive mock, LLM generator, Anthropic/OpenAI clients</td>
+</tr>
+<tr>
+<td><code>judge.py</code></td>
+<td>Shared rubric; heuristic judge (default) and LLM-as-judge</td>
+</tr>
+<tr>
+<td><code>pipeline.py</code></td>
+<td>Retrieve, rerank, generate; agentic loop with a step budget; per-stage timing</td>
+</tr>
+<tr>
+<td><code>metrics/</code></td>
+<td>recall/precision/MRR/nDCG@k, token F1/EM, citation groundedness, percentiles</td>
+</tr>
+<tr>
+<td><code>cost.py</code></td>
+<td>Token usage, price table, cost per 1k queries</td>
+</tr>
+<tr>
+<td><code>cache.py</code></td>
+<td>Content-addressed generation and judge cache</td>
+</tr>
+<tr>
+<td><code>config.py</code>, <code>factory.py</code>, <code>runner.py</code>, <code>results.py</code></td>
+<td>Experiment matrix, wiring, persistence, summaries</td>
+</tr>
+<tr>
+<td><code>stats.py</code>, <code>pareto.py</code>, <code>report/</code></td>
+<td>Paired bootstrap, frontier and budget pick, rendering</td>
+</tr>
+</tbody>
+</table></section>
+
+<section id="design-decisions" class="wrap prose"><h2>Design decisions</h2><ul>
+<li><strong>Offline by default, same code path online.</strong> The mock generator receives the exact prompt
+  an API model would, so token counts and cost scale with context size and step count the way
+  they would in production. Keys are only read when a hosted provider is configured.</li>
+<li><strong>Latency is honest about where it comes from.</strong> Retrieval and reranking are timed
+  wall-clock. API generations are timed wall-clock; the mock reports a modeled latency
+  (350 ms + 0.08 ms per input token + 15 ms per output token) and every report says so.</li>
+<li><strong>Cache keys hash content, not ids.</strong> A key covers the generator's identity and parameters,
+  the question, prior searches and each passage's id and text hash. Editing a document
+  invalidates exactly the generations that saw it. Cached entries keep their original latency
+  so a warm re-run does not flatter a pipeline.</li>
+<li><strong>Paired bootstrap over queries.</strong> Pipelines answer the same questions, so the harness
+  resamples per-query differences rather than comparing two independent means; with 55
+  queries that is the difference between a usable interval and noise.</li>
+<li><strong>A release gate needs significance and size.</strong> <code>compare --fail-on-regression</code> fails only
+  when the CI of the delta is entirely below zero and the point estimate is worse than
+  <code>--tolerance</code>. Either condition alone either blocks on noise or ships real regressions.</li>
+<li><strong>The recommendation is constrained, then Pareto.</strong> Configs over the cost or p95 budget are
+  dropped with the reason recorded; the pick is the highest-quality point on the in-budget
+  frontier of (quality, cost, p95), ties to cheaper then faster.</li>
+<li><strong>Rank fusion, not score fusion.</strong> RRF (k=60) ignores raw scores, which live on incomparable
+  scales for BM25 and cosine similarity.</li>
+<li><strong>Own BM25 and BEIR's file format.</strong> A 60-line BM25 over an inverted index with Lucene's non-negative IDF
+  is easier to verify (there is a hand-computed test) than a dependency, and the BEIR layout
+  means public benchmarks load without conversion.</li>
+<li><strong>Prices are configuration.</strong> <code>configs/prices.yaml</code> is labeled illustrative and dated; a
+  missing model is a loud error naming the known models.</li>
+</ul></section>
+
+<section id="data" class="wrap prose"><h2>Data</h2><ul>
+<li><strong>Bundled synthetic corpus</strong> (<code>data/synthetic_helpcenter/</code>, generated by
+  <code>scripts/generate_synthetic.py</code> from <code>src/rag_eval/datasets/synthetic.py</code>, seed 7): the help
+  center of <em>Tallyhive</em>, a fictional invoicing and time-tracking SaaS. 176 short documents
+  (plan limits, feature setup, plan availability, integrations, error codes, policies, release
+  notes) and 55 queries across 10 types, 8 of them multi-hop ("What is the seat cap on the
+  cheapest plan that includes SAML single sign-on?"). Qrels are graded (2 = states the answer,
+  1 = supporting or bridge document) and every query has a reference answer. All content is
+  invented; real product names appear only as integration targets. A test asserts the
+  committed files hash identically to fresh generator output.</li>
+<li><strong>BEIR SciFact (optional)</strong>: <code>scripts/download_scifact.py</code> fetches
+  <code>https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/scifact.zip</code> and checks
+  the MD5 published in the BEIR README. SciFact (Wadden et al., 2020) is licensed
+  <strong>CC BY-NC 2.0</strong>; it is never downloaded by tests or CI and is git-ignored. It has no
+  reference answers, so answer metrics are skipped and <code>configs/scifact.yaml</code> ranks on
+  nDCG@10. As a sanity check, a local run of that config gave BM25 (k1=0.9, b=0.4) nDCG@10
+  0.641 on the 300 test queries, against 0.665 reported for BM25 in the BEIR paper (Table 2).</li>
+</ul></section>
+
+<section id="configuration" class="wrap prose"><h2>Configuration</h2><p>An experiment is one YAML file; <code>configs/example.yaml</code> is annotated. Top-level keys:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Meaning</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>Run name; results go to <code>output_dir/name/</code></td>
+<td>required</td>
+</tr>
+<tr>
+<td><code>dataset</code></td>
+<td><code>{kind: synthetic}</code> or <code>{kind: beir, path: ..., split: test}</code>; optional <code>limit</code></td>
+<td>synthetic</td>
+</tr>
+<tr>
+<td><code>pipelines</code> / <code>matrix</code> / <code>defaults</code></td>
+<td>Explicit pipelines, Cartesian axes, shared settings</td>
+<td></td>
+</tr>
+<tr>
+<td><code>quality_metric</code></td>
+<td>Metric the recommendation ranks on</td>
+<td><code>answer_f1</code></td>
+</tr>
+<tr>
+<td><code>baseline</code></td>
+<td>Pipeline the deltas are measured against</td>
+<td>first pipeline</td>
+</tr>
+<tr>
+<td><code>budget</code></td>
+<td><code>max_cost_per_1k_usd</code>, <code>max_p95_latency_ms</code></td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>prices</code></td>
+<td>Price table YAML (USD per million tokens, dated)</td>
+<td><code>configs/prices.yaml</code></td>
+</tr>
+<tr>
+<td><code>judge</code></td>
+<td><code>{provider: heuristic}</code>, or <code>anthropic</code> / <code>openai</code> with a <code>model</code></td>
+<td>heuristic</td>
+</tr>
+<tr>
+<td><code>metrics_k</code></td>
+<td>Cut-offs for retrieval metrics</td>
+<td><code>[1, 3, 5, 10]</code></td>
+</tr>
+<tr>
+<td><code>bootstrap_samples</code>, <code>seed</code></td>
+<td>Bootstrap resamples and RNG seed</td>
+<td>2000, 0</td>
+</tr>
+<tr>
+<td><code>output_dir</code>, <code>cache_dir</code></td>
+<td>Where runs and the response cache live</td>
+<td><code>runs</code>, <code>.rag_eval_cache</code></td>
+</tr>
+</tbody>
+</table>
+<p>Per pipeline: <code>retriever</code> (<code>bm25</code> with <code>k1</code>/<code>b</code>, <code>dense</code> with an <code>embedder</code>, <code>hybrid</code> with
+<code>components</code>, <code>rrf_k</code>, <code>weights</code>), <code>reranker</code> (<code>query-likelihood</code> or <code>cross-encoder</code>, <code>depth</code>),
+<code>generator</code> (<code>mock</code>, <code>anthropic</code>, <code>openai</code>; <code>model</code>, <code>max_tokens</code>, and <code>price_as</code> for the
+mock), <code>top_k</code>, <code>max_steps</code>. Unknown keys are rejected. Hosted providers read
+<code>ANTHROPIC_API_KEY</code> or <code>OPENAI_API_KEY</code> from the environment and are only imported when used.</p></section>
+
+<section id="where-it-fails" class="wrap prose"><h2>Where it fails</h2><p>Failure modes from the runs above, split by where the limit sits. Issue links track the ones with
+a planned fix.</p>
+<p><strong>Model and data limits</strong> (the offline generator, the corpus, the sample size)</p>
+<table>
+<thead>
+<tr>
+<th>Slice</th>
+<th>What happens</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Multi-hop questions (8 of 55)</td>
+<td>Every single-shot pipeline scores 0.00 answer F1; the best agentic pipeline reaches 0.50</td>
+<td><code>answer_f1 by query type</code> in the demo report</td>
+</tr>
+<tr>
+<td><code>integration_objects</code> (2 of 55)</td>
+<td>0.00 answer F1 on all 8 pipelines: the right document is retrieved, but the mock extractor misses "synced" for "sync" and quotes the sync schedule instead</td>
+<td><a href="https://github.com/seanmcrae/ragbench/issues/5">#5</a></td>
+</tr>
+<tr>
+<td>Public text, offline dense retriever</td>
+<td>TF-IDF/LSA scores nDCG@10 0.442 on SciFact vs 0.641 for BM25, and 113 of 300 claims get nothing relevant in the top 10 (68 for BM25). On the synthetic corpus the same embedder looks best (MRR 0.979), an artefact of a small templated vocabulary</td>
+<td><a href="https://github.com/seanmcrae/ragbench/issues/4">#4</a></td>
+</tr>
+<tr>
+<td>Sample size</td>
+<td>55 queries leave the recommended config's +0.057 lift inside the noise</td>
+<td>CI [-0.013, +0.145]</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Design and scaffolding limits</strong> (choices in the harness itself)</p>
+<table>
+<thead>
+<tr>
+<th>Slice</th>
+<th>What happens</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Agentic loop over-searches</td>
+<td><code>hybrid-rerank-agent3-k5</code> issued follow-up searches on 34 of 55 queries though only 8 need a second hop, tripling prompt size (1,730 vs 549 input tokens). On the dense retriever the same loop drops <code>integration_sync</code> F1 from 1.00 to 0.40</td>
+<td>per-query records, demo report</td>
+</tr>
+<tr>
+<td>SciFact budget</td>
+<td><code>configs/scifact.yaml</code> caps cost at $2.00 per 1k, but all three pipelines cost $2.45 to $2.85, so the report recommends nothing on the public benchmark</td>
+<td><a href="https://github.com/seanmcrae/ragbench/issues/3">#3</a></td>
+</tr>
+<tr>
+<td>Heuristic judge</td>
+<td>Built from token F1 and citation coverage, so it moves with answer F1 (identical deltas for the agentic comparison) and adds no independent signal</td>
+<td><code>rag-eval compare</code> output</td>
+</tr>
+<tr>
+<td>Agentic retrieval metrics</td>
+<td>Passages are scored in the order the generator saw them, so second-hop results can sit beyond rank k</td>
+<td><code>pipeline.py</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Considered and rejected: a t-test for comparing pipelines.</strong> Answer metrics are bounded and
+mostly right-or-wrong per query, so normality is a poor assumption at n=55. The paired bootstrap
+makes no distributional assumption, pairing removes per-question difficulty, and it yields the
+interval a ship decision needs. The cost is 2,000 resamples per comparison, which is negligible
+at this size (<a href="product.html">docs/PRODUCT.md</a>, trade-offs).</p>
+<p>The known limitations follow.</p></section>
+
+<section id="limitations" class="wrap prose"><h2>Limitations</h2><ul>
+<li>The mock generator and planner are lexical heuristics. They make relative comparisons
+  between retrieval configurations meaningful offline, but absolute answer quality and the
+  agentic results describe the heuristics, not an LLM. Lexical gaps defeat them: every
+  pipeline scores 0 on "what data does X sync" because the answer sentence says "synced".</li>
+<li>The synthetic corpus is templated, single-domain and small. Its phrasing patterns favour
+  copular fact sentences, and n=55 gives wide intervals (the recommended config's lift is not
+  significant). Use it to exercise the harness; decide on your own queries.</li>
+<li>The heuristic judge maps token F1 and citation coverage onto the rubric, so it agrees with
+  answer F1 by construction. An LLM judge adds signal but brings its own biases (see
+  <a href="product.html">docs/PRODUCT.md</a>).</li>
+<li>For agentic pipelines the retrieval metrics score passages in the order the generator saw
+  them, so hop results can sit beyond rank k.</li>
+<li>Offline token counts are an approximation (about 4 characters per token); API adapters use
+  provider-reported usage. Cost-to-serve excludes corpus indexing and the judge.</li>
+<li>No live traffic: these are offline metrics. Click-through, deflection or CSAT need an online
+  experiment.</li>
+</ul></section>
+
+
+<section class="wrap prose">
+  <h2>Product brief</h2>
+  <p>The problem, users, scope, success metrics, trade-offs, risks and roadmap are in the
+  <a href="product.html">product brief</a>.</p>
+</section>
+
+</main>
+<footer class="wrap footer">
+  <p>ragbench 0.1.0 &middot; MIT License &middot; Sean McRae &middot;
+  <a href="https://github.com/seanmcrae/ragbench">Source on GitHub</a>.
+  Results on this site are from the bundled synthetic corpus, regenerated by CI on every push.</p>
+</footer>
+</body>
+</html>
