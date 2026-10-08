@@ -44,6 +44,7 @@ README_SECTIONS = (
     "Design decisions",
     "Data",
     "Configuration",
+    "Where it fails",
     "Limitations",
 )
 MERMAID_BLOCK = re.compile(r"```mermaid\n(.*?)```", flags=re.DOTALL)

@@ -70,7 +70,14 @@ def test_landing_page_is_generated_from_the_run(site: Path) -> None:
     assert "site-smoke" in page and "over 12 queries" in page
     assert "<h3>Recommendation</h3>" in page and "<h3>All pipelines</h3>" in page
     assert "Versus the baseline (bm25-k3)" in page and "bm25-k3" in page
-    for anchor in ("quickstart", "results", "how-evaluation-works", "architecture", "limitations"):
+    for anchor in (
+        "quickstart",
+        "results",
+        "how-evaluation-works",
+        "architecture",
+        "where-it-fails",
+        "limitations",
+    ):
         assert f'id="{anchor}"' in page
     assert 'src="img/architecture.svg"' in page and "```" not in page
 
