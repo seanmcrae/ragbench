@@ -91,6 +91,69 @@ Adoption signals worth tracking once others use it: share of retrieval or prompt
 go through `compare` before merge, number of regressions caught by the gate, and how often
 the shipped config matches the report's recommendation.
 
+## Minimum viable quality
+
+Two bars: one for the harness itself (can its numbers be trusted?) and one for a configuration it
+recommends (should a team ship it?). The second set is the default reading of a report; a team
+with its own data should set its own budget and tolerance. "Current" is the bundled demo and a
+local SciFact run.
+
+**The harness**
+
+| Check | Do not ship | Ship | Delight | Current |
+|---|---|---|---|---|
+| BM25 nDCG@10 on BEIR SciFact vs the published 0.665 | More than 0.05 below | Within 0.03 | Within 0.01 | 0.641, 0.024 below: ship |
+| Hand-computed metric tests (recall, MRR, nDCG, F1/EM, RRF, BM25, cost) | Any failing | All pass | All pass, plus a public-benchmark check in CI | All pass; SciFact is local only: ship |
+| Gate specificity | Gate fails on two identical pipelines | Identical pipelines give a zero-width CI and pass | Also passes on a seeded no-op change | Zero-width CI asserted in tests: ship |
+
+**A recommended configuration** (consistent with `compare --fail-on-regression` and the report's
+budget logic)
+
+| Metric | Do not ship | Ship | Delight | Current (`dense-lsa-k3` vs `bm25-k5`) |
+|---|---|---|---|---|
+| Answer F1 vs baseline | 95% CI entirely below zero by more than the tolerance (gate fails) | Gate passes and the point estimate is at least zero | CI lower bound above zero (significant lift) | +0.057, CI [-0.013, +0.145]: ship, not delight |
+| Groundedness | Below 0.85 | At least 0.90 | At least 0.95 | 0.909: ship |
+| Cost and p95 against the stated budget | Over either cap | Within both | Within half of both | $0.475 of $1.00, 862 of 1,500 ms: ship (delight on cost only) |
+| Per query type | A type the baseline answers drops to 0.00 | No such drop | No type below 0.50 | `feature_location` falls 0.56 to 0.39 but not to zero; `integration_objects` and `multi_hop` are 0.00 for both: ship |
+
+The agentic `hybrid-rerank-agent3-k5` is the only configuration that reaches delight on answer
+F1 (+0.073, CI [+0.018, +0.145]), and it fails the budget bar on both cost and p95. That is the
+trade the report is built to surface.
+
+## Cost at 1x and 10x usage
+
+Estimates only. They multiply the measured cost per 1k queries by a volume; nothing here comes
+from a real deployment. Prices are the illustrative table in `configs/prices.yaml` (dated
+2026-10-07) with the offline mock's token counts priced as `claude-haiku-4-5`, and those counts
+are approximate (about 4 characters per token). **1x is a round 1M queries per month**, chosen
+for illustration.
+
+Serving cost (generation only):
+
+| Configuration (data) | $ per 1k queries | 1x: 1M queries / month | 10x: 10M queries / month |
+|---|---:|---:|---:|
+| `dense-lsa-k3` (synthetic, recommended) | 0.475 | about $475 | about $4,750 |
+| `bm25-k5` (synthetic, baseline) | 0.646 | about $646 | about $6,460 |
+| `hybrid-rerank-agent3-k5` (synthetic, agentic) | 1.868 | about $1,868 | about $18,680 |
+| `bm25-k5` (SciFact, long abstracts) | 2.852 | about $2,852 | about $28,520 |
+
+Generation cost scales linearly with volume, so 10x is 10x; what moves the line is prompt length
+(top-k and passage size) and step count. The figures exclude corpus indexing, embedding calls for
+API embedders, the judge, and hosting. At 10x the in-memory BM25 and dense indexes would also need
+a real search service, which this repo does not cost.
+
+Evaluation cost (running the harness with a hosted generator at the same prices, judge excluded):
+
+| Run | Generations | Estimated cost per cold run |
+|---|---:|---:|
+| Demo matrix, 8 pipelines x 55 queries (1x eval set) | 440 | about $0.45 |
+| Same matrix on a 10x eval set (550 queries) | 4,400 | about $4.50 |
+| SciFact, 3 pipelines x 300 queries | 900 | about $2.34 |
+
+The response cache makes reruns of unchanged configurations free, so the recurring cost is
+proportional to what changed, not to the matrix size. An LLM judge would add its own per-query
+cost, which has not been measured here.
+
 ## Trade-offs and alternatives considered
 
 - **LLM-as-judge versus heuristic judge.** LLM judges catch paraphrased correctness and
