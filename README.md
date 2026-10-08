@@ -364,6 +364,13 @@ The known limitations follow.
 - No live traffic: these are offline metrics. Click-through, deflection or CSAT need an online
   experiment.
 
+## How this was built
+
+Code was written with AI coding agents under my direction. I set the problem, the success metrics
+and the eval gates, and decided what shipped. Every number in this README comes from the committed
+eval scripts: the synthetic results come from `make demo`, whose experiment matrix CI reruns on every push, and the
+SciFact results by `make scifact`, run locally because the dataset's license keeps it out of CI.
+
 ## Roadmap
 
 Product framing, success metrics, trade-offs and the now/next/later roadmap are in
