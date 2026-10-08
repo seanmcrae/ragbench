@@ -314,6 +314,37 @@ src/rag_eval/       the package (see Architecture)
 tests/              unit and integration tests, offline and deterministic
 ```
 
+## Where it fails
+
+Failure modes from the runs above, split by where the limit sits. Issue links track the ones with
+a planned fix.
+
+**Model and data limits** (the offline generator, the corpus, the sample size)
+
+| Slice | What happens | Evidence |
+|---|---|---|
+| Multi-hop questions (8 of 55) | Every single-shot pipeline scores 0.00 answer F1; the best agentic pipeline reaches 0.50 | `answer_f1 by query type` in the demo report |
+| `integration_objects` (2 of 55) | 0.00 answer F1 on all 8 pipelines: the right document is retrieved, but the mock extractor misses "synced" for "sync" and quotes the sync schedule instead | [#5](https://github.com/seanmcrae/ragbench/issues/5) |
+| Public text, offline dense retriever | TF-IDF/LSA scores nDCG@10 0.442 on SciFact vs 0.641 for BM25, and 113 of 300 claims get nothing relevant in the top 10 (68 for BM25). On the synthetic corpus the same embedder looks best (MRR 0.979), an artefact of a small templated vocabulary | [#4](https://github.com/seanmcrae/ragbench/issues/4) |
+| Sample size | 55 queries leave the recommended config's +0.057 lift inside the noise | CI [-0.013, +0.145] |
+
+**Design and scaffolding limits** (choices in the harness itself)
+
+| Slice | What happens | Evidence |
+|---|---|---|
+| Agentic loop over-searches | `hybrid-rerank-agent3-k5` issued follow-up searches on 34 of 55 queries though only 8 need a second hop, tripling prompt size (1,730 vs 549 input tokens). On the dense retriever the same loop drops `integration_sync` F1 from 1.00 to 0.40 | per-query records, demo report |
+| SciFact budget | `configs/scifact.yaml` caps cost at $2.00 per 1k, but all three pipelines cost $2.45 to $2.85, so the report recommends nothing on the public benchmark | [#3](https://github.com/seanmcrae/ragbench/issues/3) |
+| Heuristic judge | Built from token F1 and citation coverage, so it moves with answer F1 (identical deltas for the agentic comparison) and adds no independent signal | `rag-eval compare` output |
+| Agentic retrieval metrics | Passages are scored in the order the generator saw them, so second-hop results can sit beyond rank k | `pipeline.py` |
+
+**Considered and rejected: a t-test for comparing pipelines.** Answer metrics are bounded and
+mostly right-or-wrong per query, so normality is a poor assumption at n=55. The paired bootstrap
+makes no distributional assumption, pairing removes per-question difficulty, and it yields the
+interval a ship decision needs. The cost is 2,000 resamples per comparison, which is negligible
+at this size ([docs/PRODUCT.md](docs/PRODUCT.md), trade-offs).
+
+The known limitations follow.
+
 ## Limitations
 
 - The mock generator and planner are lexical heuristics. They make relative comparisons
