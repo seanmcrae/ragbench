@@ -5,24 +5,41 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.11 | 3.12](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)](pyproject.toml)
 
-Choose a RAG configuration on evidence: ragbench scores retrieval and agentic search pipelines
-on retrieval quality, answer quality, groundedness, latency and cost-to-serve, and recommends one
-under a budget with confidence intervals.
+Which RAG configuration should you ship under your cost and latency budget, and is its lift over
+the baseline real or noise? ragbench answers that question: it scores retrieval and agentic search
+pipelines on retrieval quality, answer quality, groundedness, latency and cost-to-serve, and
+recommends one under a budget with confidence intervals.
 
 **Live docs and results:** https://seanmcrae.github.io/ragbench/
 
-A YAML file declares a matrix of pipelines (BM25, dense, hybrid with reciprocal rank fusion, an
-optional reranker, single-shot or multi-step agentic retrieval); one command runs them over a
-dataset, and another turns the results into a Markdown/HTML report with a quality-vs-cost chart
-and paired bootstrap confidence intervals against a baseline. Everything runs offline by
-default: a deterministic extractive generator and a rubric judge stand in for LLMs, and
-Anthropic/OpenAI adapters are optional extras.
+## Numbers
 
-**Headline result** (bundled synthetic corpus, 8 pipelines x 55 queries, offline mock
-generator): under a budget of $1.00 per 1k queries and 1,500 ms p95, ragbench picks
-`dense-lsa-k3` (answer F1 0.606, $0.475 per 1k queries, p95 862 ms). The only statistically
-significant gain over the BM25 baseline is the agentic `hybrid-rerank-agent3-k5`
-(+0.073 answer F1, 95% CI [+0.018, +0.145]), and it costs 2.9x as much per query.
+**Bundled synthetic help-center corpus** (176 documents, 55 queries; offline mock generator, so
+generation latency is modeled and retrieval latency is measured):
+
+- **Recommended** under $1.00 per 1k queries and 1,500 ms p95: `dense-lsa-k3`, answer F1
+  **0.606 vs 0.549** for the `bm25-k5` baseline. The +0.057 lift is **not significant** at n=55
+  (95% CI [-0.013, +0.145]).
+- **Only significant win:** agentic `hybrid-rerank-agent3-k5`, answer F1 0.622
+  (+0.073, CI [+0.018, +0.145]), at 2.9x the baseline's cost and 2.2x its p95.
+- **Latency p50 / p95:** 635 / 862 ms recommended, 652 / 884 ms baseline, 1,604 / 1,963 ms agentic.
+- **Cost per 1k queries:** $0.475 recommended, $0.646 baseline, $1.868 agentic (mock token counts
+  priced as `claude-haiku-4-5` from the illustrative table in `configs/prices.yaml`, dated
+  2026-10-07).
+
+**BEIR SciFact, public** (5,183 abstracts, 300 test claims; retrieval metrics only, since SciFact
+has no reference answers):
+
+- **BM25 nDCG@10 0.641**, against 0.665 reported for BM25 in the BEIR paper (Table 2).
+- Offline dense (`dense-lsa-k5`) 0.442; hybrid with rerank 0.635, -0.006 vs BM25
+  (CI [-0.024, +0.011]): fusion adds nothing over BM25 here.
+- BM25 p50 / p95 1,154 / 2,241 ms and $2.852 per 1k queries; abstracts are long, so prompts are
+  about 5x the synthetic ones.
+
+The synthetic figures come from `make demo`; CI reruns the same matrix on every push. The SciFact figures come
+from a local `make scifact` run (a 3 MB download, then about a minute on 2 vCPUs); CI never
+downloads SciFact because of its non-commercial license. Modeled latencies move by a few
+milliseconds between runs.
 
 ![Quality vs cost on the bundled synthetic corpus](docs/img/quality_vs_cost.png)
 
@@ -54,6 +71,13 @@ uv sync --frozen --extra anthropic && export ANTHROPIC_API_KEY=...
 ```
 
 ## Features
+
+A YAML file declares a matrix of pipelines (BM25, dense, hybrid with reciprocal rank fusion, an
+optional reranker, single-shot or multi-step agentic retrieval); one command runs them over a
+dataset, and another turns the results into a Markdown/HTML report with a quality-vs-cost chart
+and paired bootstrap confidence intervals against a baseline. Everything runs offline by
+default: a deterministic extractive generator and a rubric judge stand in for LLMs, and
+Anthropic/OpenAI adapters are optional extras.
 
 - **Pipeline matrix from YAML.** Explicit pipelines plus a Cartesian `matrix` merged over
   `defaults`; names are generated from settings (`dense-lsa-agent3-k3`).
